@@ -10,47 +10,45 @@
 ///
 /// \brief The TRTDetectionInferencer class for Tensorflow Object Detection API
 ///
-class TRTDetectionInferencer : public TRTCNNInferencer
-{
+class TRTDetectionInferencer : public TRTCNNInferencer {
 public:
-    TRTDetectionInferencer();
+  TRTDetectionInferencer();
 
-    TRTDetectionInferencer(TRTDetectionInferencer&& that);
-    virtual ~TRTDetectionInferencer() = default;
+  TRTDetectionInferencer(TRTDetectionInferencer &&that);
+  virtual ~TRTDetectionInferencer() = default;
 
-    virtual std::string inference(const std::vector<cv::Mat> &imgs);
+  virtual std::string inference(const std::vector<cv::Mat> &imgs);
 
 #ifdef TRT_DEBUG
-    ///
-    /// \brief getFramesWithBoundingBoxes Debug visualization high-level method
-    /// \param tresh
-    /// \return Image with drawn bounding boxes
-    ///
-    std::vector<cv::Mat> getFramesWithBoundingBoxes(float tresh = 0.0f);
+  ///
+  /// \brief getFramesWithBoundingBoxes Debug visualization high-level method
+  /// \param tresh
+  /// \return Image with drawn bounding boxes
+  ///
+  std::vector<cv::Mat> getFramesWithBoundingBoxes(float tresh = 0.0f);
 #endif
 
+  float getThresh() const;
+  void setThresh(float thresh);
 
-    float getThresh() const;
-    void setThresh(float thresh);
-
-    // Access themm after inference done
-    std::vector<std::vector<cv::Rect2f> > getBoxes() const;
-    std::vector<std::vector<float> > getScores() const;
-    std::vector<std::vector<int> > getClasses() const;
+  // Access themm after inference done
+  std::vector<std::vector<cv::Rect2f>> getBoxes() const;
+  std::vector<std::vector<float>> getScores() const;
+  std::vector<std::vector<int>> getClasses() const;
 
 protected:
-    bool processOutput(const samplesCommon::BufferManager &buffers);
+  bool processOutput(const samplesCommon::BufferManager &buffers);
 
-    size_t _layout_size = 7;
-    float _thresh = 0.5;
+  size_t _layout_size = 7;
+  float _thresh = 0.5;
 
-    std::vector<std::vector<cv::Rect2f>> _boxes;
-    std::vector<std::vector<float>> _scores;
-    std::vector<std::vector<int>> _classes;
+  std::vector<std::vector<cv::Rect2f>> _boxes;
+  std::vector<std::vector<float>> _scores;
+  std::vector<std::vector<int>> _classes;
 
 #ifdef TRT_DEBUG
-    std::vector<cv::Mat> _bb_frames;
-    std::vector<cv::Mat> _frames;
+  std::vector<cv::Mat> _bb_frames;
+  std::vector<cv::Mat> _frames;
 #endif
 };
 

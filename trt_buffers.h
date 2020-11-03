@@ -17,8 +17,8 @@
 #define TENSORRT_BUFFERS_H
 
 #include "NvInfer.h"
-#include "trt_common.hpp"
-#include "trt_half.hpp"
+#include "trt_common.h"
+#include "trt_half.h"
 #include <cassert>
 #include <cuda_runtime_api.h>
 #include <iostream>

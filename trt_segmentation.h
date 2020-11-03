@@ -1,7 +1,3 @@
-//
-// Created by luch on 03.11.2020.
-//
-
 #ifndef TRTWRAPPER_PROJ_TRT_SEGMENTATION_H
 #define TRTWRAPPER_PROJ_TRT_SEGMENTATION_H
 

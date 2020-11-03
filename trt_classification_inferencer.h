@@ -8,34 +8,31 @@
 #include "trt_cnn_inferencer.h"
 
 ///
-/// \brief The TRTClassificationInferencer class for Tensorflow Slim Claassification API
+/// \brief The TRTClassificationInferencer class for Tensorflow Slim
+/// Claassification API
 ///
-class TRTClassificationInferencer : public TRTCNNInferencer
-{
+class TRTClassificationInferencer : public TRTCNNInferencer {
 public:
-    TRTClassificationInferencer();
+  TRTClassificationInferencer();
 
-    TRTClassificationInferencer(TRTClassificationInferencer&& that);
-    virtual ~TRTClassificationInferencer() = default;
+  TRTClassificationInferencer(TRTClassificationInferencer &&that);
+  virtual ~TRTClassificationInferencer() = default;
 
-    virtual std::string inference(const std::vector<cv::Mat> &imgs);
+  virtual std::string inference(const std::vector<cv::Mat> &imgs);
 
-    float getThresh() const;
-    void setThresh(float thresh);
+  float getThresh() const;
+  void setThresh(float thresh);
 
-    std::vector<int> getClasses() const;
-    std::vector<float> getScores() const;
+  std::vector<int> getClasses() const;
+  std::vector<float> getScores() const;
 
 protected:
+  bool processOutput(const samplesCommon::BufferManager &buffers);
 
-    bool processOutput(const samplesCommon::BufferManager &buffers);
+  std::vector<float> _scores;
+  std::vector<int> _classes;
 
-    std::vector<float> _scores;
-    std::vector<int> _classes;
-
-    float _thresh = 0.5;
-
+  float _thresh = 0.5;
 };
-
 
 #endif // TRT_CLASSIFICATION_INFERENCER_H
