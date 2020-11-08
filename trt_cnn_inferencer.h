@@ -220,6 +220,7 @@ protected:
   double _gpu_memory_fraction = 0.9;
 
   NormalizeType _norm_type = NormalizeType::DETECTION;
+  std::vector<float> deviation = {0.229, 0.224, 0.225};
   bool _bgr2rgb = true; // otherwise RGB
 };
 

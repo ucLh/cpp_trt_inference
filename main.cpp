@@ -17,7 +17,7 @@
 //#include "tensorflow_detector.hpp"
 #include "trt_classification_inferencer.h"
 #include "trt_detection_inferencer.h"
-#include "trt_segmentation.h"
+#include "trt_segmentation_inferencer.h"
 
 using namespace std;
 // using namespace tensorflow;
@@ -75,7 +75,7 @@ int main() {
 //    std::cout << "Size:  " << inferencer.getFramesWithBoundingBoxes().size()
 //              << std::endl;
 //    cv::Mat im = inferencer.getFramesWithBoundingBoxes()[0];
-//    cv::imwrite("1_trt_.jpg", im);
+    cv::imwrite("1_trt_.jpg", inferencer.getColoredMask());
     cv::waitKey(0);
 
     auto t1 = std::chrono::high_resolution_clock::now();

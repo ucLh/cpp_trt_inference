@@ -13,7 +13,7 @@ add_definitions(-DTFWRAPPER_LIBRARY)
 # find_package(TensorRT)
 
 set(SOURCE_NAMES
-        trt_segmentation.cpp
+        trt_segmentation_inferencer.cpp
         trt_classification_inferencer.cpp
         trt_cnn_inferencer.cpp
         trt_detection_inferencer.cpp
@@ -21,7 +21,7 @@ set(SOURCE_NAMES
         main.cpp)
 
 set(HEADERS_NAMES
-        trt_segmentation.h
+        trt_segmentation_inferencer.h
         trt_buffers.h
         trt_half.h
         trt_common.h
