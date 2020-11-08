@@ -1,5 +1,6 @@
 project(trtwrapper_proj)
 cmake_minimum_required(VERSION 3.5.0)
+set (CMAKE_CXX_STANDARD 11)
 
 set(TARGET_NAME "trtwrapper")
 set(EXEC_NAME "inference_demo")

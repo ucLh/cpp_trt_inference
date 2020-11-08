@@ -31,7 +31,7 @@
 template <typename T>
 using SampleUniquePtr = std::unique_ptr<T, samplesCommon::InferDeleter>;
 
-enum NormalizeType { DETECTION, CLASSIFICATION_SLIM };
+enum NormalizeType { DETECTION, CLASSIFICATION_SLIM, SEGMENTATION };
 
 ///
 /// \brief The TRTCNNInferencer class defines interface for TRT inferencers:
@@ -194,7 +194,7 @@ protected:
 
   std::shared_ptr<nvinfer1::INetworkDefinition> _network_definition = nullptr;
 
-  nvinfer1::Dims3 _input_shape = {3, 300, 300};
+  nvinfer1::Dims3 _input_shape = {640, 1280, 3};
 
   // nvuffparser::UffInputOrder _input_order =
   // nvuffparser::UffInputOrder::kNCHW;
@@ -217,7 +217,7 @@ protected:
   bool _is_loaded = false;
 
   std::string _name = "UnknownModel";
-  double _gpu_memory_fraction = 1.0;
+  double _gpu_memory_fraction = 0.9;
 
   NormalizeType _norm_type = NormalizeType::DETECTION;
   bool _bgr2rgb = true; // otherwise RGB

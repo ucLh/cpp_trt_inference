@@ -17,6 +17,7 @@
 //#include "tensorflow_detector.hpp"
 #include "trt_classification_inferencer.h"
 #include "trt_detection_inferencer.h"
+#include "trt_segmentation.h"
 
 using namespace std;
 // using namespace tensorflow;
@@ -59,20 +60,22 @@ int main() {
   /// TensortRT
 
   {
-    cv::Mat img = cv::imread("1.jpg");
+    cv::Mat img = cv::imread("left_2_000000318.jpg");
 
-    TRTDetectionInferencer inferencer;
-    bool ok = inferencer.loadFromCudaEngine("auto_v4_trt_desktop.bin");
+    TRTSegmentationInferencer inferencer;
+    inferencer.original_image = img;
+    bool ok = inferencer.loadFromCudaEngine(
+        "effnetb0_unet_gray_2grass_iou55_640x1280.bin");
     // bool ok = inferencer.loadFromUff("ssd_mobilenet_v1_coco.uff");
     std::cerr << "Status of load: " << inferencer.getLastError() << std::endl;
 
     inferencer.inference({img});
     std::cerr << "Status of inference: " << inferencer.getLastError()
               << std::endl;
-    std::cout << "Size:  " << inferencer.getFramesWithBoundingBoxes().size()
-              << std::endl;
-    cv::Mat im = inferencer.getFramesWithBoundingBoxes()[0];
-    cv::imwrite("1_trt_.jpg", im);
+//    std::cout << "Size:  " << inferencer.getFramesWithBoundingBoxes().size()
+//              << std::endl;
+//    cv::Mat im = inferencer.getFramesWithBoundingBoxes()[0];
+//    cv::imwrite("1_trt_.jpg", im);
     cv::waitKey(0);
 
     auto t1 = std::chrono::high_resolution_clock::now();

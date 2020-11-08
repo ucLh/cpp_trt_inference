@@ -135,6 +135,13 @@ bool TRTCNNInferencer::loadFromCudaEngine(const string &filename) {
     return false;
   }
 
+  clearModel();
+
+  _builder->setMaxBatchSize(_batch_size);
+
+  configureBitMode();
+  configureGPUMemory();
+
   std::ifstream input(filename, std::ios::binary);
   std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(input), {});
 
@@ -269,8 +276,12 @@ std::string TRTCNNInferencer::inference(const std::vector<cv::Mat> &imgs) {
 #endif
 
   bool success =
-      processInput(*_buffers, imgs, {0.0, 0.0, 0.0}, _norm_type, _bgr2rgb);
+      processInput(*_buffers, imgs, {0.485, 0.456, 0.406,}, _norm_type, _bgr2rgb);
   _buffers->copyInputToDevice();
+
+  float *hostDataBuffer =
+      static_cast<float *>(_buffers->getHostBuffer(_input_node_name));
+  std::vector<float> check_(hostDataBuffer + 1280, hostDataBuffer + 1280 + 20);
 
   if (!success) {
     return _last_error;
@@ -300,22 +311,22 @@ std::string TRTCNNInferencer::inference(const std::vector<cv::Mat> &imgs) {
   return "OK";
 }
 
-int TRTCNNInferencer::getInputHeight() const { return _input_shape.d[1]; }
+int TRTCNNInferencer::getInputHeight() const { return _input_shape.d[0]; }
 
 void TRTCNNInferencer::setInputHeight(const int &height) {
-  _input_shape.d[1] = height;
+  _input_shape.d[0] = height;
 }
 
-int TRTCNNInferencer::getInputWidth() const { return _input_shape.d[2]; }
+int TRTCNNInferencer::getInputWidth() const { return _input_shape.d[1]; }
 
 void TRTCNNInferencer::setInputWidth(const int &width) {
-  _input_shape.d[2] = width;
+  _input_shape.d[1] = width;
 }
 
-int TRTCNNInferencer::getInputDepth() const { return _input_shape.d[0]; }
+int TRTCNNInferencer::getInputDepth() const { return _input_shape.d[2]; }
 
 void TRTCNNInferencer::setInputDepth(const int &depth) {
-  _input_shape.d[0] = depth;
+  _input_shape.d[2] = depth;
 }
 
 std::string TRTCNNInferencer::getLastError() const { return _last_error; }
@@ -359,32 +370,48 @@ bool TRTCNNInferencer::processInput(const samplesCommon::BufferManager &buffers,
   for (int i = 0; i < _batch_size; ++i) {
 
     // Nearest is faster, but results are different
-    cv::resize(imgs[i], input_img, cv::Size(inputW, inputH), 0, 0,
-               cv::INTER_LINEAR);
+    cv::resize(imgs[i], input_img, cv::Size(inputW, inputH), 0, 0);
+    // cv::resize(imgs[i], input_img, cv::Size(inputW, inputH), 0, 0,
+    //            cv::INTER_LINEAR);
+
+    // unsigned char *input_ = (unsigned char*)(input_img.data);
+    // int r,g,b;
+    // for(int l = 0; l < input_img.rows; ++l)
+    // {
+	  //   for(int j = 0; j < input_img.cols; ++j)
+    //     {
+    //         b = input_[input_img.step * j + l ] ;
+    //         g = input_[input_img.step * j + l + 1];
+    //         r = input_[input_img.step * j + l + 2];
+    //     }
+    // }
 
     // positions - height - width
     input_img.forEach<cv::Vec3b>([&](cv::Vec3b &pixel,
                                      const int position[]) -> void {
       for (short c = 0; c < inputC; ++c) {
-
+        std::vector<float> deviation = {0.229, 0.224, 0.225};
         float val(pixel[c]);
-        val -= mean[c];
+        val = float(val);
+        val /= 255.0;
+        val -= mean[2-c];
+        val /= deviation[2-c];
 
-        if (normalize == NormalizeType::DETECTION) {
-          val = (2.0f / 255.0f) * val - 1.0f;
-        } else if (normalize == NormalizeType::CLASSIFICATION_SLIM) {
-          // WARN: IDK why, this shouldnt happen, but work only with this
-          // preprocessing
-          val = float(val);
-          val /= 255.0;
-          // val -= 0.5;
-          // val *= 2.0;
-        }
+//        if (normalize == NormalizeType::DETECTION) {
+//          val = (2.0f / 255.0f) * val - 1.0f;
+//        } else if (normalize == NormalizeType::CLASSIFICATION_SLIM) {
+//          // WARN: IDK why, this shouldnt happen, but work only with this
+//          // preprocessing
+//          val = float(val);
+//          val /= 255.0;
+//          // val -= 0.5;
+//          // val *= 2.0;
+//        }
 
         int pos = 0;
+        std::vector<int> check_pos(position, position + 2);
         if (rgb) {
-          pos = i * volImg + (2 - c) * volChl + position[0] * inputH +
-                position[1];
+          pos = i * volImg + (2 - c) * volChl + position[0] * inputW + position[1];
         } else {
           pos = i * volImg + c * volChl + position[0] * inputH + position[1];
         }
@@ -393,6 +420,10 @@ bool TRTCNNInferencer::processInput(const samplesCommon::BufferManager &buffers,
       }
     });
   }
+  std::vector<float> check_(hostDataBuffer, hostDataBuffer + volImg);
+  std::ofstream outFile("image_vec.txt");
+  // the important part
+  for (const auto &e : check_) outFile << e << "\n";
 
   return true;
 }
