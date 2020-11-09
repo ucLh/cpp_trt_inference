@@ -1,15 +1,7 @@
 #include <iostream>
 
-#include <fstream>
-#include <setjmp.h>
-#include <stdio.h>
-#include <string.h>
-#include <vector>
-
 #include <opencv2/opencv.hpp>
 
-#include "trt_classification_inferencer.h"
-#include "trt_detection_inferencer.h"
 #include "trt_segmentation_inferencer.h"
 
 using namespace std;
@@ -50,3 +42,4 @@ int main() {
 
   return 0;
 }
+
