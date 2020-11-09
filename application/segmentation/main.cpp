@@ -15,8 +15,8 @@ int main() {
   std::cerr << "Status of load: " << inferencer.getLastError() << std::endl;
 
   inferencer.inference({img});
-  inferencer.getIndexed();
-  inferencer.getColored();
+  inferencer.makeIndexMask();
+  inferencer.makeColorMask();
   std::cerr << "Status of inference: " << inferencer.getLastError()
             << std::endl;
   //    std::cout << "Size:  " << inferencer.getFramesWithBoundingBoxes().size()
@@ -31,7 +31,7 @@ int main() {
   std::cout << "Starting inference TRT..." << std::endl;
   for (int i = 0; i < 1000; ++i) {
     inferencer.inference({img});
-    inferencer.getIndexed();
+    inferencer.makeIndexMask();
   }
 
   auto t2 = std::chrono::high_resolution_clock::now();

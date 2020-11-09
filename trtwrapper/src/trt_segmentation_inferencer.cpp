@@ -8,6 +8,8 @@ TRTSegmentationInferencer::TRTSegmentationInferencer() {
 
   _norm_type = NormalizeType::SEGMENTATION;
   _bgr2rgb = true;
+  _colored_mask = cv::Mat(1, rows * cols, CV_8UC3);
+  _index_mask = cv::Mat(1, rows * cols, CV_8UC1);
 }
 
 string TRTSegmentationInferencer::inference(const std::vector<cv::Mat> &imgs) {
@@ -18,7 +20,7 @@ string TRTSegmentationInferencer::inference(const std::vector<cv::Mat> &imgs) {
   }
 }
 
-string TRTSegmentationInferencer::getIndexed() {
+string TRTSegmentationInferencer::makeIndexMask() {
   bool ok = processOutput(*_buffers);
 
   if (!ok) {
@@ -28,7 +30,7 @@ string TRTSegmentationInferencer::getIndexed() {
   return "OK";
 }
 
-string TRTSegmentationInferencer::getColored() {
+string TRTSegmentationInferencer::makeColorMask() {
   bool ok = processOutputColored(*_buffers);
 
   if (!ok) {
@@ -53,7 +55,6 @@ bool TRTSegmentationInferencer::processOutputColored(
 
   int size = rows * cols;
   size_t num_channels = num_of_elements / (size);
-  cv::Mat colored_mask(1, size, CV_8UC3);
   cv::Mat img;
   cv::resize(original_image, img, cv::Size(cols, rows), 0, 0);
   img = img.reshape(0, 1);
@@ -70,7 +71,7 @@ bool TRTSegmentationInferencer::processOutputColored(
     int maxElementIndex =
         std::max_element(point.begin(), point.end()) - point.begin();
 
-    cv::Vec3b &pixel = colored_mask.at<cv::Vec3b>(cv::Point(i, 0));
+    cv::Vec3b &pixel = _colored_mask.at<cv::Vec3b>(cv::Point(i, 0));
     cv::Vec3b img_pixel = img.at<cv::Vec3b>(cv::Point(i, 0));
     pixel[0] = (1 - _alpha) * _colors[maxElementIndex][2] + _alpha * img_pixel[2];
     pixel[1] = (1 - _alpha) * _colors[maxElementIndex][1] + _alpha * img_pixel[1];
@@ -78,7 +79,7 @@ bool TRTSegmentationInferencer::processOutputColored(
     std::fill(point.begin(), point.end(), -1);
   }
 
-  _colored_mask = colored_mask.reshape(0, rows);
+  _colored_mask = _colored_mask.reshape(0, rows);
 
   return true;
 }
@@ -98,8 +99,7 @@ bool TRTSegmentationInferencer::processOutput(
 
   int size = rows * cols;
   size_t num_channels = num_of_elements / (size);
-  cv::Mat index_mask(1, size, CV_8UC1);
-  uint8_t *indexes_ptr = index_mask.data;
+  uint8_t *indexes_ptr = _index_mask.data;
   int maxElementIndex = -1;
 
   std::vector<float> point(num_channels);
@@ -114,7 +114,7 @@ bool TRTSegmentationInferencer::processOutput(
     indexes_ptr[0, i] = maxElementIndex;
   }
 
-  _index_mask = index_mask.reshape(0, rows);
+  _index_mask = _index_mask.reshape(0, rows);
 
   return true;
 }
@@ -158,7 +158,7 @@ cv::Mat& TRTSegmentationInferencer::getColorMask() {
     return _colored_mask;
   }
   else {
-    std::cerr << "You have to call getColored() first!" << "\n";
+    std::cerr << "You have to call makeColorMask() first!" << "\n";
     exit(1);
   }
 }
@@ -168,7 +168,7 @@ cv::Mat& TRTSegmentationInferencer::getIndexMask() {
     return _index_mask;
   }
   else {
-    std::cerr << "You have to call getIndexed() first!" << "\n";
+    std::cerr << "You have to call makeIndexMask() first!" << "\n";
     exit(1);
   }
 }

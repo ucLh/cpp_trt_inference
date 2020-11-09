@@ -19,8 +19,8 @@ public:
   virtual ~TRTSegmentationInferencer() = default;
 
   std::string inference(const std::vector<cv::Mat> &imgs) override;
-  std::string getIndexed();
-  std::string getColored();
+  std::string makeIndexMask();
+  std::string makeColorMask();
 
   cv::Mat& getColorMask();
   cv::Mat& getIndexMask();
