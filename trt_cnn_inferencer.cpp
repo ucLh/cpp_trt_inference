@@ -279,10 +279,6 @@ std::string TRTCNNInferencer::inference(const std::vector<cv::Mat> &imgs) {
       processInput(*_buffers, imgs, {0.485, 0.456, 0.406,}, _norm_type, _bgr2rgb);
   _buffers->copyInputToDevice();
 
-  float *hostDataBuffer =
-      static_cast<float *>(_buffers->getHostBuffer(_input_node_name));
-  std::vector<float> check_(hostDataBuffer + 1280, hostDataBuffer + 1280 + 20);
-
   if (!success) {
     return _last_error;
   }
