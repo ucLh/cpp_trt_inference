@@ -10,21 +10,24 @@ int main() {
   cv::Mat img = cv::imread("left_2_000000318.jpg");
 
   SegmentationWrapper seg_wrapper;
-  seg_wrapper.loadFromCudaEngine("effnetb0_unet_gray_2grass_iou55_640x1280.bin");
+
+//  seg_wrapper.loadFromCudaEngine(
+//      "effnetb0_unet_gray_2grass_iou55_640x1280.bin");
+  seg_wrapper.prepareForInference("config.json");
   std::cerr << "Status of load: " << seg_wrapper.getLastError() << std::endl;
 
-  seg_wrapper.inference({img});
+  seg_wrapper.inference(img);
   std::cerr << "Status of inference: " << seg_wrapper.getLastError()
             << std::endl;
   cv::imwrite("1_trt_index.jpg", seg_wrapper.getIndexMask());
-  cv::imwrite("1_trt_color.jpg", seg_wrapper.getColorMask(0.4));
+  cv::imwrite("1_trt_color.jpg", seg_wrapper.getColorMask(0.4, img));
   cv::waitKey(0);
 
   auto t1 = std::chrono::high_resolution_clock::now();
 
   std::cout << "Starting inference TRT..." << std::endl;
   for (int i = 0; i < 1000; ++i) {
-    seg_wrapper.inference({img});
+    seg_wrapper.inference(img);
     seg_wrapper.getIndexMask();
   }
 
@@ -36,4 +39,3 @@ int main() {
 
   return 0;
 }
-

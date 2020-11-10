@@ -1,10 +1,12 @@
 #ifndef TRTWRAPPER_PROJ_TRT_SEGMENTATION_H
 #define TRTWRAPPER_PROJ_TRT_SEGMENTATION_H
 
+#include <memory>
 #include <opencv4/opencv2/opencv.hpp>
 #include <string>
 #include <vector>
 
+#include "interfaces.h"
 #include "trt_cnn_inferencer.h"
 
 ///
@@ -18,45 +20,34 @@ public:
   TRTSegmentationInferencer(TRTSegmentationInferencer &&that);
   virtual ~TRTSegmentationInferencer() = default;
 
+  bool prepareForInference(const std::string &config_path);
   std::string inference(const std::vector<cv::Mat> &imgs) override;
   std::string makeIndexMask();
-  std::string makeColorMask();
+  std::string makeColorMask(const cv::Mat &original_image);
 
-  cv::Mat& getColorMask();
-  cv::Mat& getIndexMask();
+  cv::Mat &getColorMask();
+  cv::Mat &getIndexMask();
 
-  void setMixingCoefficient (float alpha);
-
-  int rows = 640;
-  int cols = 1280;
-  cv::Mat original_image;
+  void setMixingCoefficient(float alpha);
 
 protected:
   bool processOutput(const samplesCommon::BufferManager &buffers) override;
-  bool processOutputColored(const samplesCommon::BufferManager &buffers);
+  bool processOutputColored(const samplesCommon::BufferManager &buffers,
+                            const cv::Mat &original_image);
   // the fast version does not work correctly right now
   bool processOutputFast(const samplesCommon::BufferManager &buffers);
 
-  cv::Mat _colored_mask;
-  cv::Mat _index_mask;
-  bool _color_mask_ready = false;
-  bool _index_mask_ready = false;
+  std::unique_ptr<IDataBase> data_handler_;
+  int rows = 640;
+  int cols = 1280;
+  cv::Mat colored_mask_;
+  cv::Mat index_mask_;
+  bool color_mask_ready_ = false;
+  bool index_mask_ready_ = false;
+  bool ready_for_inference_ = false;
 
-  std::map<int, vector<uint8_t> > _colors = {
-      {0, {0, 0, 0}},
-      {1, {0, 177, 247}},
-      {2, {94, 30, 104}},
-      {3, {191, 119, 56}},
-      {4, {40, 140, 40}},
-      // {5, {146, 243, 146}},
-      {5, {10, 250, 30}},
-      {6, {250, 0, 55}},
-      {7, {178, 20, 50}},
-      {8, {0, 30, 130}},
-      {9, {0, 255, 127}},
-      {10, {243, 15, 190}}
-  };
-  float _alpha;
+  std::vector<std::array<int, 3>> colors_;
+  float alpha_;
 };
 
-#endif //TRTWRAPPER_PROJ_TRT_SEGMENTATION_H
+#endif // TRTWRAPPER_PROJ_TRT_SEGMENTATION_H

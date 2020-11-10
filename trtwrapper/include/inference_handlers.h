@@ -6,8 +6,11 @@
 
 class SegmentationInferenceHandler : public ISegmentationInferenceHandler {
 public:
+  bool prepareForInference(const std::string &config_path) override {
+      return segm_.prepareForInference(config_path);
+  }
+
   std::string inference(const std::vector<cv::Mat> &imgs) override {
-    segm_.original_image = imgs[0];
     return segm_.inference(imgs);
   }
 
@@ -15,9 +18,9 @@ public:
     return segm_.makeIndexMask();
   }
 
-  std::string makeColorMask(float alpha) override {
+  std::string makeColorMask(float alpha, const cv::Mat &original_image) override {
     segm_.setMixingCoefficient(alpha);
-    return segm_.makeColorMask();
+    return segm_.makeColorMask(original_image);
   }
 
   cv::Mat& getIndexMask() override {

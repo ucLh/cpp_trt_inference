@@ -128,14 +128,14 @@ public:
   ///  If not check getLastError method
   virtual std::string inference(const std::vector<cv::Mat> &imgs);
 
-  std::string getInputNodeName() const { return _input_node_name; }
-  void setInputNodeName(const std::string &name) { _input_node_name = name; }
+  std::string getInputNodeName() const { return input_node_name_; }
+  void setInputNodeName(const std::string &name) { input_node_name_ = name; }
 
   std::vector<std::string> getOutputNodeName() const {
-    return _output_node_names;
+    return output_node_names_;
   }
   void setOutputNodeName(const std::vector<std::string> &output_node_names) {
-    _output_node_names = output_node_names;
+    output_node_names_ = output_node_names;
   }
 
   int getInputHeight() const;
@@ -211,8 +211,8 @@ protected:
 
   std::vector<std::string> _label_names = {"none"};
 
-  std::string _input_node_name = "Input";
-  std::vector<std::string> _output_node_names = {"NMS"};
+  std::string input_node_name_ = "Input";
+  std::vector<std::string> output_node_names_ = {"NMS"};
 
   bool _is_loaded = false;
 

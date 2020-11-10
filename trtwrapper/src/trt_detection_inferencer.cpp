@@ -84,13 +84,13 @@ TRTDetectionInferencer::getFramesWithBoundingBoxes(float tresh) {
 bool TRTDetectionInferencer::processOutput(
     const samplesCommon::BufferManager &buffers) {
   float *hostDataBuffer =
-      static_cast<float *>(buffers.getHostBuffer(_output_node_names[0]));
+      static_cast<float *>(buffers.getHostBuffer(output_node_names_[0]));
   // NOTE: buffers.size give bytes, not lenght, be carefull
   const size_t size =
-      (buffers.size(_output_node_names[0]) / sizeof(float)) / _batch_size;
+      (buffers.size(output_node_names_[0]) / sizeof(float)) / _batch_size;
 
   if (!hostDataBuffer) {
-    _last_error = "Can not get output tensor by name " + _output_node_names[0];
+    _last_error = "Can not get output tensor by name " + output_node_names_[0];
     return false;
   }
 

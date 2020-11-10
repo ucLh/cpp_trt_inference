@@ -218,11 +218,11 @@ bool TRTCNNInferencer::loadFromUff(const string &filename) {
 
   clearModel();
 
-  _uff_parser->registerInput(_input_node_name.c_str(), _input_shape,
+  _uff_parser->registerInput(input_node_name_.c_str(), _input_shape,
                              nvuffparser::UffInputOrder::kNHWC);
 
-  for (size_t i = 0; i < _output_node_names.size(); i++)
-    _uff_parser->registerOutput(_output_node_names[i].c_str());
+  for (size_t i = 0; i < output_node_names_.size(); i++)
+    _uff_parser->registerOutput(output_node_names_[i].c_str());
 
   _builder->setMaxBatchSize((int)_batch_size);
   configureGPUMemory();
@@ -349,12 +349,12 @@ bool TRTCNNInferencer::processInput(const samplesCommon::BufferManager &buffers,
   const int inputW = getInputWidth();
 
   float *hostDataBuffer =
-      static_cast<float *>(buffers.getHostBuffer(_input_node_name));
+      static_cast<float *>(buffers.getHostBuffer(input_node_name_));
   // NOTE: Carefully, size is in bytes!
-  const int size = buffers.size(_input_node_name) / sizeof(float);
+  const int size = buffers.size(input_node_name_) / sizeof(float);
 
   if (!hostDataBuffer) {
-    _last_error = "Can not get input tensor by name: " + _input_node_name;
+    _last_error = "Can not get input tensor by name: " + input_node_name_;
     return false;
   }
 

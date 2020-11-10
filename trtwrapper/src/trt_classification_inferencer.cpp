@@ -1,8 +1,8 @@
 #include "trt_classification_inferencer.h"
 
 TRTClassificationInferencer::TRTClassificationInferencer() {
-  _input_node_name = "input:0";
-  _output_node_names = {"MobilenetV1/Predictions/Reshape_1:0"};
+  input_node_name_ = "input:0";
+  output_node_names_ = {"MobilenetV1/Predictions/Reshape_1:0"};
 
   _norm_type = NormalizeType::CLASSIFICATION_SLIM;
   _bgr2rgb = true;
@@ -29,13 +29,13 @@ TRTClassificationInferencer::inference(const std::vector<cv::Mat> &imgs) {
 bool TRTClassificationInferencer::processOutput(
     const samplesCommon::BufferManager &buffers) {
   float *hostDataBuffer =
-      static_cast<float *>(buffers.getHostBuffer(_output_node_names[0]));
+      static_cast<float *>(buffers.getHostBuffer(output_node_names_[0]));
   // NOTE: buffers.size give bytes, not length, be careful
   const size_t num_of_classes =
-      (buffers.size(_output_node_names[0]) / sizeof(float)) / _batch_size;
+      (buffers.size(output_node_names_[0]) / sizeof(float)) / _batch_size;
 
   if (!hostDataBuffer) {
-    _last_error = "Can not get output tensor by name " + _output_node_names[0];
+    _last_error = "Can not get output tensor by name " + output_node_names_[0];
     return false;
   }
 

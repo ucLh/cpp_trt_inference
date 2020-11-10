@@ -1,0 +1,10 @@
+{
+  "input_size": [
+    640,
+    1280
+  ],
+  "engine_path": "/home/luch/Programming/C++/cpp_trt_inference/cmake-build-debug/effnetb0_unet_gray_2grass_iou55_640x1280.bin",
+  "colors_path": "/home/luch/Programming/C++/city_obj_retrieval/classes.csv",
+  "input_node": "input_0",
+  "output_node": "output_0"
+}

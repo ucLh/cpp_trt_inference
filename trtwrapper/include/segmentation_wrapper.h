@@ -10,7 +10,9 @@ public:
 
   ~SegmentationWrapper() = default;
 
-  bool loadFromCudaEngine(const std::string &filename);
+//  bool loadFromCudaEngine(const std::string &filename);
+
+  bool prepareForInference(const std::string &config_path);
 
   bool inference(cv::Mat &img);  // Only batch size 1 for now
 
@@ -18,7 +20,7 @@ public:
 
   cv::Mat getIndexMask();
 
-  cv::Mat getColorMask(float alpha);
+  cv::Mat getColorMask(float alpha, const cv::Mat &original_image);
 
 protected:
   std::unique_ptr<ISegmentationInferenceHandler> inference_handler_;
