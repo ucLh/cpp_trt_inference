@@ -25,6 +25,8 @@ public:
   cv::Mat& getColorMask();
   cv::Mat& getIndexMask();
 
+  void setMixingCoefficient (float alpha);
+
   int rows = 640;
   int cols = 1280;
   cv::Mat original_image;

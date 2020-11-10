@@ -172,3 +172,7 @@ cv::Mat& TRTSegmentationInferencer::getIndexMask() {
     exit(1);
   }
 }
+
+void TRTSegmentationInferencer::setMixingCoefficient(float alpha) {
+  _alpha = alpha;
+}

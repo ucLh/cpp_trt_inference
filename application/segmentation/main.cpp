@@ -2,36 +2,30 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "trt_segmentation_inferencer.h"
+#include "segmentation_wrapper.h"
 
 using namespace std;
 
 int main() {
   cv::Mat img = cv::imread("left_2_000000318.jpg");
 
-  TRTSegmentationInferencer inferencer;
-  inferencer.original_image = img;
-  inferencer.loadFromCudaEngine("effnetb0_unet_gray_2grass_iou55_640x1280.bin");
-  std::cerr << "Status of load: " << inferencer.getLastError() << std::endl;
+  SegmentationWrapper seg_wrapper;
+  seg_wrapper.loadFromCudaEngine("effnetb0_unet_gray_2grass_iou55_640x1280.bin");
+  std::cerr << "Status of load: " << seg_wrapper.getLastError() << std::endl;
 
-  inferencer.inference({img});
-  inferencer.makeIndexMask();
-  inferencer.makeColorMask();
-  std::cerr << "Status of inference: " << inferencer.getLastError()
+  seg_wrapper.inference({img});
+  std::cerr << "Status of inference: " << seg_wrapper.getLastError()
             << std::endl;
-  //    std::cout << "Size:  " << inferencer.getFramesWithBoundingBoxes().size()
-  //              << std::endl;
-  //    cv::Mat im = inferencer.getFramesWithBoundingBoxes()[0];
-  cv::imwrite("1_trt_index.jpg", inferencer.getIndexMask());
-  cv::imwrite("1_trt_color.jpg", inferencer.getColorMask());
+  cv::imwrite("1_trt_index.jpg", seg_wrapper.getIndexMask());
+  cv::imwrite("1_trt_color.jpg", seg_wrapper.getColorMask(0.4));
   cv::waitKey(0);
 
   auto t1 = std::chrono::high_resolution_clock::now();
 
   std::cout << "Starting inference TRT..." << std::endl;
   for (int i = 0; i < 1000; ++i) {
-    inferencer.inference({img});
-    inferencer.makeIndexMask();
+    seg_wrapper.inference({img});
+    seg_wrapper.getIndexMask();
   }
 
   auto t2 = std::chrono::high_resolution_clock::now();
