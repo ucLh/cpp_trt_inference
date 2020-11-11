@@ -8,7 +8,7 @@ TRTSegmentationInferencer::TRTSegmentationInferencer() {
   data_handler_ = make_unique<DataHandling>();
   _norm_type = NormalizeType::SEGMENTATION;
   _bgr2rgb = true;
-  colored_mask_ = cv::Mat(1, rows_ * cols_, CV_8UC3);
+  colored_mask_ = cv::Mat(rows_, cols_, CV_8UC3);
   index_mask_ = cv::Mat(rows_, cols_, CV_8UC1);
 }
 
@@ -56,7 +56,7 @@ string TRTSegmentationInferencer::makeIndexMask() {
 
 string TRTSegmentationInferencer::makeColorMask(float alpha,
                                                 const cv::Mat &original_image) {
-  bool ok = processOutputColored(*_buffers, alpha, original_image);
+  bool ok = processOutputColoredFast(*_buffers, alpha, original_image);
 
   if (!ok) {
     return _last_error;
@@ -106,6 +106,48 @@ bool TRTSegmentationInferencer::processOutputColored(
   }
 
   colored_mask_ = colored_mask_.reshape(0, rows_);
+
+  return true;
+}
+
+bool TRTSegmentationInferencer::processOutputColoredFast(
+    const samplesCommon::BufferManager &buffers, float alpha,
+    const cv::Mat &original_image) {
+  auto *hostDataBuffer = static_cast<half_float::half *>(
+      buffers.getHostBuffer(output_node_names_[0]));
+  // NOTE: buffers.size give bytes, not length, be careful
+  const size_t num_of_elements =
+      (buffers.size(output_node_names_[0]) / sizeof(half_float::half)) /
+      _batch_size;
+
+  if (!hostDataBuffer) {
+    _last_error = "Can not get output tensor by name " + output_node_names_[0];
+    return false;
+  }
+  //  int img_size = rows * cols;
+  //  size_t num_channels = num_of_elements / (img_size);
+
+  // Needs to be a multiple of 8. If the actual number
+  // is lower, the remaining channels will be filled with zeros
+  const int num_classes = 16;
+
+  cv::Mat net_output(rows_, cols_, CV_16FC(num_classes), hostDataBuffer);
+  uint8_t *mask_ptr = colored_mask_.data;
+  cv::Mat img;
+  cv::resize(original_image, img, cv::Size(cols_, rows_), 0, 0);
+  uint8_t *img_ptr = img.data;
+  typedef cv::Vec<cv::float16_t, num_classes> Vecnb;
+  net_output.forEach<Vecnb>([&](Vecnb &pixel, const int position[]) -> void {
+    std::vector<float> p{pixel.val, pixel.val + 11};
+    int maxElementIndex = std::max_element(p.begin(), p.end()) - p.begin();
+    int hw_pos = position[0] * cols_ + position[1];
+    mask_ptr[3 * hw_pos + 0] = (1 - alpha) * colors_[maxElementIndex][2] +
+                               alpha * img_ptr[3 * hw_pos + 0];
+    mask_ptr[3 * hw_pos + 1] = (1 - alpha) * colors_[maxElementIndex][1] +
+                               alpha * img_ptr[3 * hw_pos + 1];
+    mask_ptr[3 * hw_pos + 2] = (1 - alpha) * colors_[maxElementIndex][0] +
+                               alpha * img_ptr[3 * hw_pos + 2];
+  });
 
   return true;
 }
