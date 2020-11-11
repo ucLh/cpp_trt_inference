@@ -27,14 +27,19 @@ int main() {
 
   std::cout << "Starting inference TRT..." << std::endl;
   for (int i = 0; i < 1000; ++i) {
+    auto t1_1 = std::chrono::high_resolution_clock::now();
     seg_wrapper.inference(img);
     seg_wrapper.getIndexMask();
+    auto t1_2 = std::chrono::high_resolution_clock::now();
+    auto duration =
+        std::chrono::duration_cast<std::chrono::microseconds>(t1_2 - t1_1).count();
+    std::cout << "Inference + postprocessing took: " << duration << "\n";
   }
 
   auto t2 = std::chrono::high_resolution_clock::now();
   auto duration =
       std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
-  std::cout << "Inference TensorRT took: " << (duration / 10000)
+  std::cout << "Inference TensorRT took: " << (duration / 1000)
             << " microseconds" << std::endl;
 
   return 0;

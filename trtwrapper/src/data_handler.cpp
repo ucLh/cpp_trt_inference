@@ -2,7 +2,6 @@
 #include "csv/csv.h"
 #include <sstream>
 #include <utility>
-
 #include <string>
 
 bool DataHandling::open_config() {

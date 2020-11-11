@@ -19,8 +19,6 @@ public:
 
   virtual cv::Mat &getColorMask() = 0;
 
-  virtual bool loadFromCudaEngine(const std::string &filename) = 0;
-
   virtual std::string getLastError() = 0;
 };
 

@@ -38,7 +38,7 @@ bool TRTSegmentationInferencer::prepareForInference(
   data_handler_->load_colors();
   colors_ = data_handler_->get_colors();
 
-  loadFromCudaEngine(data_handler_->get_config_engine_path());
+  TRTCNNInferencer::loadFromCudaEngine(data_handler_->get_config_engine_path());
   ready_for_inference_ = true;
   return true;
 }
@@ -53,8 +53,9 @@ string TRTSegmentationInferencer::makeIndexMask() {
   return "OK";
 }
 
-string TRTSegmentationInferencer::makeColorMask(const cv::Mat &original_image) {
-  bool ok = processOutputColored(*_buffers, original_image);
+string TRTSegmentationInferencer::makeColorMask(float alpha,
+                                                const cv::Mat &original_image) {
+  bool ok = processOutputColored(*_buffers, alpha, original_image);
 
   if (!ok) {
     return _last_error;
@@ -64,7 +65,7 @@ string TRTSegmentationInferencer::makeColorMask(const cv::Mat &original_image) {
 }
 
 bool TRTSegmentationInferencer::processOutputColored(
-    const samplesCommon::BufferManager &buffers,
+    const samplesCommon::BufferManager &buffers, float alpha,
     const cv::Mat &original_image) {
   float *hostDataBuffer =
       static_cast<float *>(buffers.getHostBuffer(output_node_names_[0]));
@@ -98,11 +99,11 @@ bool TRTSegmentationInferencer::processOutputColored(
     cv::Vec3b &pixel = colored_mask_.at<cv::Vec3b>(cv::Point(i, 0));
     cv::Vec3b img_pixel = img.at<cv::Vec3b>(cv::Point(i, 0));
     pixel[0] =
-        (1 - alpha_) * colors_[maxElementIndex][2] + alpha_ * img_pixel[2];
+        (1 - alpha) * colors_[maxElementIndex][2] + alpha * img_pixel[2];
     pixel[1] =
-        (1 - alpha_) * colors_[maxElementIndex][1] + alpha_ * img_pixel[1];
+        (1 - alpha) * colors_[maxElementIndex][1] + alpha * img_pixel[1];
     pixel[2] =
-        (1 - alpha_) * colors_[maxElementIndex][0] + alpha_ * img_pixel[0];
+        (1 - alpha) * colors_[maxElementIndex][0] + alpha * img_pixel[0];
     std::fill(point.begin(), point.end(), -1);
   }
 
@@ -205,4 +206,8 @@ cv::Mat &TRTSegmentationInferencer::getIndexMask() {
 
 void TRTSegmentationInferencer::setMixingCoefficient(float alpha) {
   alpha_ = alpha;
+}
+
+std::string TRTSegmentationInferencer::getLastError() {
+  return TRTCNNInferencer::getLastError();
 }

@@ -13,27 +13,29 @@
 /// \brief The TRTClassificationInferencer class for Tensorflow Slim
 /// Claassification API
 ///
-class TRTSegmentationInferencer : public TRTCNNInferencer {
+class TRTSegmentationInferencer : public TRTCNNInferencer,
+                                  public ISegmentationInferenceHandler {
 public:
   TRTSegmentationInferencer();
 
   TRTSegmentationInferencer(TRTSegmentationInferencer &&that);
   virtual ~TRTSegmentationInferencer() = default;
 
-  bool prepareForInference(const std::string &config_path);
+  bool prepareForInference(const std::string &config_path) override ;
   std::string inference(const std::vector<cv::Mat> &imgs) override;
-  std::string makeIndexMask();
-  std::string makeColorMask(const cv::Mat &original_image);
+  std::string makeIndexMask() override ;
+  std::string makeColorMask(float alpha, const cv::Mat &original_image) override;
 
-  cv::Mat &getColorMask();
-  cv::Mat &getIndexMask();
+  cv::Mat &getColorMask() override;
+  cv::Mat &getIndexMask() override;
 
   void setMixingCoefficient(float alpha);
+  std::string getLastError() override;
 
 protected:
   bool processOutput(const samplesCommon::BufferManager &buffers) override;
   bool processOutputColored(const samplesCommon::BufferManager &buffers,
-                            const cv::Mat &original_image);
+                            float alpha, const cv::Mat &original_image);
   // the fast version does not work correctly right now
   bool processOutputFast(const samplesCommon::BufferManager &buffers);
 

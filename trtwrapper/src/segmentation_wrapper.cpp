@@ -1,8 +1,8 @@
 #include "segmentation_wrapper.h"
-#include "inference_handlers.h"
+#include "trt_segmentation_inferencer.h"
 
 SegmentationWrapper::SegmentationWrapper() {
-  inference_handler_ = std::make_unique<SegmentationInferenceHandler>();
+  inference_handler_ = std::make_unique<TRTSegmentationInferencer>();
 }
 
 //bool SegmentationWrapper::loadFromCudaEngine(const std::string &filename) {
