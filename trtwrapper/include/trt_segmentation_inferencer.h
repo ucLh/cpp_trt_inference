@@ -13,13 +13,13 @@
 /// \brief The TRTClassificationInferencer class for Tensorflow Slim
 /// Claassification API
 ///
-class TRTSegmentationInferencer : public TRTCNNInferencer,
-                                  public ISegmentationInferenceHandler {
+class TRTSegmentationInferencer : virtual public TRTCNNInferencer,
+                                  virtual public ISegmentationInferenceHandler {
 public:
   TRTSegmentationInferencer();
 
   TRTSegmentationInferencer(TRTSegmentationInferencer &&that);
-  ~TRTSegmentationInferencer() override = default;
+  ~TRTSegmentationInferencer() = default;
 
   bool prepareForInference(const std::string &config_path) override;
   std::string inference(const std::vector<cv::Mat> &imgs) override;
