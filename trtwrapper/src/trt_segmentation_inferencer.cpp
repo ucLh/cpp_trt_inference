@@ -138,7 +138,7 @@ bool TRTSegmentationInferencer::processOutputColoredFast(
   uint8_t *img_ptr = img.data;
   typedef cv::Vec<cv::float16_t, num_classes> Vecnb;
   net_output.forEach<Vecnb>([&](Vecnb &pixel, const int position[]) -> void {
-    std::vector<float> p{pixel.val, pixel.val + 11};
+    std::vector<float> p{pixel.val, pixel.val + num_classes_actual_};
     int maxElementIndex = std::max_element(p.begin(), p.end()) - p.begin();
     int hw_pos = position[0] * cols_ + position[1];
     mask_ptr[3 * hw_pos + 0] = (1 - alpha) * colors_[maxElementIndex][2] +
@@ -211,7 +211,7 @@ bool TRTSegmentationInferencer::processOutputFast(
   uint8_t *indexes_ptr = index_mask_.data;
   typedef cv::Vec<cv::float16_t, num_classes> Vecnb;
   net_output.forEach<Vecnb>([&](Vecnb &pixel, const int position[]) -> void {
-    std::vector<float> p{pixel.val, pixel.val + 11};
+    std::vector<float> p{pixel.val, pixel.val + num_classes_actual_};
     int maxElementIndex = std::max_element(p.begin(), p.end()) - p.begin();
     indexes_ptr[0, position[0] * cols_ + position[1]] = maxElementIndex;
   });
@@ -237,10 +237,6 @@ cv::Mat &TRTSegmentationInferencer::getIndexMask() {
               << "\n";
     exit(1);
   }
-}
-
-void TRTSegmentationInferencer::setMixingCoefficient(float alpha) {
-  alpha_ = alpha;
 }
 
 std::string TRTSegmentationInferencer::getLastError() {

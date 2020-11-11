@@ -5,10 +5,6 @@ SegmentationWrapper::SegmentationWrapper() {
   inference_handler_ = std::make_unique<TRTSegmentationInferencer>();
 }
 
-//bool SegmentationWrapper::loadFromCudaEngine(const std::string &filename) {
-//  return inference_handler_->loadFromCudaEngine(filename);
-//}
-
 bool SegmentationWrapper::prepareForInference(const std::string &config_path) {
   return inference_handler_->prepareForInference(config_path);
 }

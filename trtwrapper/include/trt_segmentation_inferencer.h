@@ -30,14 +30,12 @@ public:
   cv::Mat &getColorMask() override;
   cv::Mat &getIndexMask() override;
 
-  void setMixingCoefficient(float alpha);
   std::string getLastError() override;
 
 protected:
   bool processOutput(const samplesCommon::BufferManager &buffers) override;
   bool processOutputColored(const samplesCommon::BufferManager &buffers,
                             float alpha, const cv::Mat &original_image);
-  // the fast version does not work correctly right now
   bool processOutputFast(const samplesCommon::BufferManager &buffers);
   bool processOutputColoredFast(const samplesCommon::BufferManager &buffers,
                             float alpha, const cv::Mat &original_image);
@@ -54,7 +52,6 @@ protected:
   bool ready_for_inference_ = false;
 
   std::vector<std::array<int, 3>> colors_;
-  float alpha_;
 };
 
 #endif // TRTWRAPPER_PROJ_TRT_SEGMENTATION_H
