@@ -20,7 +20,7 @@ int main() {
   std::cerr << "Status of inference: " << seg_wrapper.getLastError()
             << std::endl;
   cv::imwrite("1_trt_index.jpg", seg_wrapper.getIndexMask());
-  cv::imwrite("1_trt_color.jpg", seg_wrapper.getColorMask(0.4, img));
+//  cv::imwrite("1_trt_color.jpg", seg_wrapper.getColorMask(0.4, img));
   cv::waitKey(0);
 
   auto t1 = std::chrono::high_resolution_clock::now();
