@@ -45,7 +45,7 @@ bool TRTSegmentationInferencer::prepareForInference(
 }
 
 string TRTSegmentationInferencer::makeIndexMask() {
-  bool ok = processOutputFast(*_buffers);
+  bool ok = processOutputArgmaxed(*_buffers);
 
   if (!ok) {
     return _last_error;
@@ -56,7 +56,7 @@ string TRTSegmentationInferencer::makeIndexMask() {
 
 string TRTSegmentationInferencer::makeColorMask(float alpha,
                                                 const cv::Mat &original_image) {
-  bool ok = processOutputColoredFast(*_buffers, alpha, original_image);
+  bool ok = processOutputColoredArgmaxed(*_buffers, alpha, original_image);
 
   if (!ok) {
     return _last_error;
@@ -68,7 +68,7 @@ string TRTSegmentationInferencer::makeColorMask(float alpha,
 bool TRTSegmentationInferencer::processOutputColored(
     const samplesCommon::BufferManager &buffers, float alpha,
     const cv::Mat &original_image) {
-  float *hostDataBuffer =
+  auto *hostDataBuffer =
       static_cast<float *>(buffers.getHostBuffer(output_node_names_[0]));
   // NOTE: buffers.size give bytes, not length, be careful
   const size_t num_of_elements =
@@ -154,7 +154,7 @@ bool TRTSegmentationInferencer::processOutputColoredFast(
 
 bool TRTSegmentationInferencer::processOutput(
     const samplesCommon::BufferManager &buffers) {
-  float *hostDataBuffer =
+  auto *hostDataBuffer =
       static_cast<float *>(buffers.getHostBuffer(output_node_names_[0]));
   // NOTE: buffers.size give bytes, not length, be careful
   const size_t num_of_elements =
@@ -215,6 +215,51 @@ bool TRTSegmentationInferencer::processOutputFast(
     int maxElementIndex = std::max_element(p.begin(), p.end()) - p.begin();
     indexes_ptr[0, position[0] * cols_ + position[1]] = maxElementIndex;
   });
+
+  return true;
+}
+
+bool TRTSegmentationInferencer::processOutputArgmaxed(
+    const samplesCommon::BufferManager &buffers) {
+  auto *hostDataBuffer =
+      static_cast<int *>(buffers.getHostBuffer(output_node_names_[0]));
+  // NOTE: buffers.size give bytes, not length, be careful
+  const size_t num_of_elements =
+      (buffers.size(output_node_names_[0]) / sizeof(int)) / _batch_size;
+  std::vector<int> data_vec{hostDataBuffer, hostDataBuffer + num_of_elements};
+  index_mask_ = cv::Mat(data_vec).reshape(1, rows_);
+  return true;
+}
+
+bool TRTSegmentationInferencer::processOutputColoredArgmaxed(
+    const samplesCommon::BufferManager &buffers, float alpha,
+    const cv::Mat &original_image) {
+  auto *hostDataBuffer =
+      static_cast<int *>(buffers.getHostBuffer(output_node_names_[0]));
+  // NOTE: buffers.size give bytes, not length, be careful
+  const size_t num_of_elements =
+      (buffers.size(output_node_names_[0]) / sizeof(int)) / _batch_size;
+  std::vector<int> data_vec{hostDataBuffer, hostDataBuffer + num_of_elements};
+  index_mask_ = cv::Mat(data_vec).reshape(1, rows_);
+  // Call to the processOutputArgmaxed does not give the expected result right
+  // now,
+  // so for now we are repeating the code.
+
+  uint8_t *mask_ptr = colored_mask_.data;
+  cv::Mat img;
+  cv::resize(original_image, img, cv::Size(cols_, rows_), 0, 0);
+  uint8_t *img_ptr = img.data;
+
+  index_mask_.forEach<cv::Vec<int, 1>>(
+      [&](cv::Vec<int, 1> pixel, const int position[]) -> void {
+        int hw_pos = position[0] * cols_ + position[1];
+        mask_ptr[3 * hw_pos + 0] = (1 - alpha) * colors_[pixel.val[0]][2] +
+                                   alpha * img_ptr[3 * hw_pos + 0];
+        mask_ptr[3 * hw_pos + 1] = (1 - alpha) * colors_[pixel.val[0]][1] +
+                                   alpha * img_ptr[3 * hw_pos + 1];
+        mask_ptr[3 * hw_pos + 2] = (1 - alpha) * colors_[pixel.val[0]][0] +
+                                   alpha * img_ptr[3 * hw_pos + 2];
+      });
 
   return true;
 }

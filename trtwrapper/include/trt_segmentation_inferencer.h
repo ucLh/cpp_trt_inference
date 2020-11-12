@@ -38,7 +38,10 @@ protected:
                             float alpha, const cv::Mat &original_image);
   bool processOutputFast(const samplesCommon::BufferManager &buffers);
   bool processOutputColoredFast(const samplesCommon::BufferManager &buffers,
-                            float alpha, const cv::Mat &original_image);
+                                float alpha, const cv::Mat &original_image);
+  bool processOutputArgmaxed(const samplesCommon::BufferManager &buffers);
+  bool processOutputColoredArgmaxed(const samplesCommon::BufferManager &buffers,
+                                    float alpha, const cv::Mat &original_image);
 
   std::unique_ptr<IDataBase> data_handler_;
   int rows_ = 640;
