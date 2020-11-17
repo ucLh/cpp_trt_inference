@@ -373,26 +373,26 @@ bool TRTCNNInferencer::processInput(const samplesCommon::BufferManager &buffers,
                                      const int position[]) -> void {
       for (short c = 0; c < inputC; ++c) {
         float val(pixel[c]);
-        val /= 255.0;
-        val -= mean[2-c];
-        val /= deviation[2-c];
-
-//        if (normalize == NormalizeType::DETECTION) {
-//          val = (2.0f / 255.0f) * val - 1.0f;
-//        } else if (normalize == NormalizeType::CLASSIFICATION_SLIM) {
-//          // WARN: IDK why, this shouldnt happen, but work only with this
-//          // preprocessing
-//          val = float(val);
-//          val /= 255.0;
-//          // val -= 0.5;
-//          // val *= 2.0;
-//        }
+        if (normalize == NormalizeType::SEGMENTATION) {
+          val /= 255.0;
+          val -= mean[2-c];
+          val /= deviation[2-c];
+        } else if (normalize == NormalizeType::DETECTION) {
+          val = (2.0f / 255.0f) * val - 1.0f;
+        } else if (normalize == NormalizeType::CLASSIFICATION_SLIM) {
+          // WARN: IDK why, this shouldnt happen, but work only with this
+          // preprocessing
+          val = float(val);
+          val /= 255.0;
+          // val -= 0.5;
+          // val *= 2.0;
+        }
 
         int pos = 0;
         if (rgb) {
           pos = i * volImg + (2 - c) * volChl + position[0] * inputW + position[1];
         } else {
-          pos = i * volImg + c * volChl + position[0] * inputH + position[1];
+          pos = i * volImg + c * volChl + position[0] * inputW + position[1];
         }
 
         hostDataBuffer[pos] = val;

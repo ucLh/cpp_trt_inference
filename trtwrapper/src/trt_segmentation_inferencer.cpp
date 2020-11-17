@@ -34,6 +34,7 @@ bool TRTSegmentationInferencer::prepareForInference(
 
   rows_ = data_handler_->get_config_input_size().height;
   cols_ = data_handler_->get_config_input_size().width;
+  _input_shape = {rows_, cols_, 3};
 
   data_handler_->load_colors();
   colors_ = data_handler_->get_colors();

@@ -194,7 +194,7 @@ protected:
 
   std::shared_ptr<nvinfer1::INetworkDefinition> _network_definition = nullptr;
 
-  nvinfer1::Dims3 _input_shape = {640, 1280, 3};
+  nvinfer1::Dims3 _input_shape = {300, 300, 3};
 
   // nvuffparser::UffInputOrder _input_order =
   // nvuffparser::UffInputOrder::kNCHW;
