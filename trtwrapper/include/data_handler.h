@@ -10,7 +10,7 @@
 #include "rapidjson/writer.h"
 #include "interfaces.h"
 
-class DataHandling : public IDataBase{
+class DataHandling : public IDataBase {
 public:
   DataHandling() = default;
   virtual ~DataHandling() = default;
@@ -51,14 +51,14 @@ protected:
   };
 
   std::string m_config_path = "config.json";
-  std::vector<std::array<int, 3> > m_colors;
+  std::vector<std::array<int, 3>> m_colors;
   configData m_config;
   std::fstream m_config_datafile;
 
   bool openConfig();
   static std::string tryParseJsonMember(rapidjson::Document &doc,
-                                           const std::string &name,
-                                           const std::string &default_val = "");
+                                        const std::string &name,
+                                        const std::string &default_val = "");
 };
 
 #endif // TRT_INFERENCE_DATA_HANDLER_H

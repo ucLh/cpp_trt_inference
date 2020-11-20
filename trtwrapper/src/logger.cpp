@@ -24,12 +24,11 @@ LogStreamConsumer gLogWarning{TRT_LOGGER::LOG_WARN(gLogger)};
 LogStreamConsumer gLogError{TRT_LOGGER::LOG_ERROR(gLogger)};
 LogStreamConsumer gLogFatal{TRT_LOGGER::LOG_FATAL(gLogger)};
 
-void setReportableSeverity(Logger::Severity severity)
-{
-    gLogger.setReportableSeverity(severity);
-    gLogVerbose.setReportableSeverity(severity);
-    gLogInfo.setReportableSeverity(severity);
-    gLogWarning.setReportableSeverity(severity);
-    gLogError.setReportableSeverity(severity);
-    gLogFatal.setReportableSeverity(severity);
+void setReportableSeverity(Logger::Severity severity) {
+  gLogger.setReportableSeverity(severity);
+  gLogVerbose.setReportableSeverity(severity);
+  gLogInfo.setReportableSeverity(severity);
+  gLogWarning.setReportableSeverity(severity);
+  gLogError.setReportableSeverity(severity);
+  gLogFatal.setReportableSeverity(severity);
 }

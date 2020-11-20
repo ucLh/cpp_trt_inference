@@ -19,7 +19,8 @@ std::string SegmentationWrapper::getLastError() {
   return m_inference_handler->getLastError();
 }
 
-cv::Mat SegmentationWrapper::getColorMask(float alpha, const cv::Mat &original_image) {
+cv::Mat SegmentationWrapper::getColorMask(float alpha,
+                                          const cv::Mat &original_image) {
   m_inference_handler->makeColorMask(alpha, original_image);
   return m_inference_handler->getColorMask();
 }

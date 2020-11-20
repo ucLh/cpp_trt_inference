@@ -1,18 +1,17 @@
 #include "data_handler.h"
 #include "csv/csv.h"
 #include <sstream>
-#include <utility>
 #include <string>
+#include <utility>
 
 bool DataHandling::openConfig() {
   m_config_datafile.open(m_config_path, std::ios::in | std::ios::app);
   return true;
 }
 
-std::string
-DataHandling::tryParseJsonMember(rapidjson::Document &doc,
-                                    const std::string &name,
-                                    const std::string &default_val) {
+std::string DataHandling::tryParseJsonMember(rapidjson::Document &doc,
+                                             const std::string &name,
+                                             const std::string &default_val) {
   if (doc.HasMember(name.c_str())) {
     rapidjson::Value &value = doc[name.c_str()];
     return value.GetString();
@@ -84,13 +83,9 @@ cv::Size DataHandling::getConfigInputSize() { return m_config.input_size; }
 
 std::string DataHandling::getConfigInputNode() { return m_config.input_node; }
 
-std::string DataHandling::getConfigOutputNode() {
-  return m_config.output_node;
-}
+std::string DataHandling::getConfigOutputNode() { return m_config.output_node; }
 
-std::string DataHandling::getConfigEnginePath() {
-  return m_config.engine_path;
-}
+std::string DataHandling::getConfigEnginePath() { return m_config.engine_path; }
 
 std::vector<std::array<int, 3>> DataHandling::getColors() { return m_colors; }
 

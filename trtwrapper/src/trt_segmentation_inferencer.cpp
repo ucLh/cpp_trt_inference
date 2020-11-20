@@ -101,9 +101,12 @@ bool TRTSegmentationInferencer::processOutputColored(
 
     cv::Vec3b &pixel = m_colored_mask.at<cv::Vec3b>(cv::Point(i, 0));
     cv::Vec3b img_pixel = img.at<cv::Vec3b>(cv::Point(i, 0));
-    pixel[0] = (1 - alpha) * m_colors[maxElementIndex][2] + alpha * img_pixel[2];
-    pixel[1] = (1 - alpha) * m_colors[maxElementIndex][1] + alpha * img_pixel[1];
-    pixel[2] = (1 - alpha) * m_colors[maxElementIndex][0] + alpha * img_pixel[0];
+    pixel[0] =
+        (1 - alpha) * m_colors[maxElementIndex][2] + alpha * img_pixel[2];
+    pixel[1] =
+        (1 - alpha) * m_colors[maxElementIndex][1] + alpha * img_pixel[1];
+    pixel[2] =
+        (1 - alpha) * m_colors[maxElementIndex][0] + alpha * img_pixel[0];
     std::fill(point.begin(), point.end(), -1);
   }
 
@@ -116,8 +119,8 @@ bool TRTSegmentationInferencer::processOutputColoredFast(
     const samplesCommon::BufferManager &buffers, float alpha,
     const cv::Mat &original_image) {
   auto output_node_name = getOutputNodeName()[0];
-  auto *hostDataBuffer = static_cast<half_float::half *>(
-      buffers.getHostBuffer(output_node_name));
+  auto *hostDataBuffer =
+      static_cast<half_float::half *>(buffers.getHostBuffer(output_node_name));
   // NOTE: buffers.size give bytes, not length, be careful
   const size_t num_of_elements =
       (buffers.size(output_node_name) / sizeof(half_float::half)) /
@@ -194,8 +197,8 @@ bool TRTSegmentationInferencer::processOutput(
 bool TRTSegmentationInferencer::processOutputFast(
     const samplesCommon::BufferManager &buffers) {
   auto output_node_name = getOutputNodeName()[0];
-  auto *hostDataBuffer = static_cast<half_float::half *>(
-      buffers.getHostBuffer(output_node_name));
+  auto *hostDataBuffer =
+      static_cast<half_float::half *>(buffers.getHostBuffer(output_node_name));
   // NOTE: buffers.size give bytes, not length, be careful
   const size_t num_of_elements =
       (buffers.size(output_node_name) / sizeof(half_float::half)) /

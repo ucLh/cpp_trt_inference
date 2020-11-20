@@ -2,7 +2,8 @@
 
 TRTCNNInferencer::TRTCNNInferencer() {
   m_builder = samplesCommon::InferObject(nvinfer1::createInferBuilder(gLogger));
-  m_builder_config = samplesCommon::InferObject(m_builder->createBuilderConfig());
+  m_builder_config =
+      samplesCommon::InferObject(m_builder->createBuilderConfig());
 
   // WARN: is that legal?
   const auto explicitBatch =
@@ -74,7 +75,7 @@ bool TRTCNNInferencer::loadFromONNX(const std::string &filename) {
   //, *m_network_definition, DataType::kFLOAT);
   if (!success) {
     m_last_error = "Can't parse model file " +
-                  std::string(m_onnx_parser->getError(0)->desc());
+                   std::string(m_onnx_parser->getError(0)->desc());
     return false;
   }
 
@@ -92,15 +93,16 @@ bool TRTCNNInferencer::loadFromONNX(const std::string &filename) {
 
   m_builder_config->addOptimizationProfile(prof);
 
-  m_cuda_engine = samplesCommon::InferObject(
-      m_builder->buildEngineWithConfig(*m_network_definition, *m_builder_config));
+  m_cuda_engine = samplesCommon::InferObject(m_builder->buildEngineWithConfig(
+      *m_network_definition, *m_builder_config));
 
   if (!m_cuda_engine) {
     m_last_error = "Can't build cuda engine";
     return false;
   }
 
-  m_context = samplesCommon::InferObject(m_cuda_engine->createExecutionContext());
+  m_context =
+      samplesCommon::InferObject(m_cuda_engine->createExecutionContext());
 
   if (!m_context) {
     m_last_error = "Can't create context";
@@ -139,8 +141,8 @@ bool TRTCNNInferencer::loadFromCudaEngine(const string &filename) {
 
   m_builder->setMaxBatchSize(m_batch_size);
 
-//  configureBitMode();
-//  configureGPUMemory();
+  //  configureBitMode();
+  //  configureGPUMemory();
 
   std::ifstream input(filename, std::ios::binary);
   std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(input), {});
@@ -154,7 +156,8 @@ bool TRTCNNInferencer::loadFromCudaEngine(const string &filename) {
     return false;
   }
 
-  m_context = samplesCommon::InferObject(m_cuda_engine->createExecutionContext());
+  m_context =
+      samplesCommon::InferObject(m_cuda_engine->createExecutionContext());
 
   if (!m_context) {
     m_last_error = "Can't create context";
@@ -219,7 +222,7 @@ bool TRTCNNInferencer::loadFromUff(const string &filename) {
   clearModel();
 
   m_uff_parser->registerInput(m_input_node_name.c_str(), m_input_shape,
-                             nvuffparser::UffInputOrder::kNHWC);
+                              nvuffparser::UffInputOrder::kNHWC);
 
   for (size_t i = 0; i < m_output_node_names.size(); i++)
     m_uff_parser->registerOutput(m_output_node_names[i].c_str());
@@ -229,21 +232,22 @@ bool TRTCNNInferencer::loadFromUff(const string &filename) {
   configureBitMode();
 
   bool success = m_uff_parser->parse(filename.c_str(), *m_network_definition,
-                                    DataType::kFLOAT);
+                                     DataType::kFLOAT);
   if (!success) {
     m_last_error = "Can't parse model file";
     return false;
   }
 
-  m_cuda_engine = samplesCommon::InferObject(
-      m_builder->buildEngineWithConfig(*m_network_definition, *m_builder_config));
+  m_cuda_engine = samplesCommon::InferObject(m_builder->buildEngineWithConfig(
+      *m_network_definition, *m_builder_config));
 
   if (!m_cuda_engine) {
     m_last_error = "Can't build cuda engine";
     return false;
   }
 
-  m_context = samplesCommon::InferObject(m_cuda_engine->createExecutionContext());
+  m_context =
+      samplesCommon::InferObject(m_cuda_engine->createExecutionContext());
 
   if (!m_context) {
     m_last_error = "Can't create context";
@@ -275,8 +279,13 @@ std::string TRTCNNInferencer::inference(const std::vector<cv::Mat> &imgs) {
   auto t1 = std::chrono::high_resolution_clock::now();
 #endif
 
-  bool success =
-      processInput(*m_buffers, imgs, {0.485, 0.456, 0.406,}, m_norm_type, m_bgr2rgb);
+  bool success = processInput(*m_buffers, imgs,
+                              {
+                                  0.485,
+                                  0.456,
+                                  0.406,
+                              },
+                              m_norm_type, m_bgr2rgb);
   m_buffers->copyInputToDevice();
 
   if (!success) {
@@ -375,8 +384,8 @@ bool TRTCNNInferencer::processInput(const samplesCommon::BufferManager &buffers,
         float val(pixel[c]);
         if (normalize == NormalizeType::SEGMENTATION) {
           val /= 255.0;
-          val -= mean[2-c];
-          val /= m_deviation[2-c];
+          val -= mean[2 - c];
+          val /= m_deviation[2 - c];
         } else if (normalize == NormalizeType::DETECTION) {
           val = (2.0f / 255.0f) * val - 1.0f;
         } else if (normalize == NormalizeType::CLASSIFICATION_SLIM) {
@@ -390,7 +399,8 @@ bool TRTCNNInferencer::processInput(const samplesCommon::BufferManager &buffers,
 
         int pos = 0;
         if (rgb) {
-          pos = i * volImg + (2 - c) * volChl + position[0] * inputW + position[1];
+          pos = i * volImg + (2 - c) * volChl + position[0] * inputW +
+                position[1];
         } else {
           pos = i * volImg + c * volChl + position[0] * inputW + position[1];
         }
@@ -402,7 +412,8 @@ bool TRTCNNInferencer::processInput(const samplesCommon::BufferManager &buffers,
 #ifdef IMAGE_DUMP_DEBUG
   std::vector<float> check_(hostDataBuffer, hostDataBuffer + volImg);
   std::ofstream outFile("image_vec.txt");
-  for (const auto &e : check_) outFile << e << "\n";
+  for (const auto &e : check_)
+    outFile << e << "\n";
 #endif
 
   return true;

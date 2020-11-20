@@ -90,7 +90,8 @@ bool TRTDetectionInferencer::processOutput(
       (buffers.size(m_output_node_names[0]) / sizeof(float)) / m_batch_size;
 
   if (!hostDataBuffer) {
-    m_last_error = "Can not get output tensor by name " + m_output_node_names[0];
+    m_last_error =
+        "Can not get output tensor by name " + m_output_node_names[0];
     return false;
   }
 
