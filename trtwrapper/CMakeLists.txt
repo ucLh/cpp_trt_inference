@@ -4,7 +4,7 @@ project(TRT_WRAPPER)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules")
 
-find_package(OpenCV REQUIRED)
+find_package(OpenCV 4 REQUIRED)
 find_package(CUDA REQUIRED)
 
 add_library(TRT_WRAPPER
