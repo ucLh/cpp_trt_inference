@@ -24,31 +24,31 @@ public:
 
 class IDataBase {
 public:
-  virtual bool set_config_path(std::string path) = 0;
+  virtual bool setConfigPath(std::string path) = 0;
 
-  virtual bool load_config() = 0;
+  virtual bool loadConfig() = 0;
 
-  virtual bool load_colors() = 0;
+  virtual bool loadColors() = 0;
 
-  virtual cv::Size get_config_input_size() = 0;
+  virtual cv::Size getConfigInputSize() = 0;
 
-  virtual std::string get_config_input_node() = 0;
+  virtual std::string getConfigInputNode() = 0;
 
-  virtual std::string get_config_output_node() = 0;
+  virtual std::string getConfigOutputNode() = 0;
 
-  virtual std::string get_config_engine_path() = 0;
+  virtual std::string getConfigEnginePath() = 0;
 
-  virtual std::vector<std::array<int, 3>> get_colors() = 0;
+  virtual std::vector<std::array<int, 3>> getColors() = 0;
 
-  virtual bool set_config_input_size(const cv::Size &size) = 0;
+  virtual bool setConfigInputSize(const cv::Size &size) = 0;
 
-  virtual bool set_config_input_node(const std::string &input_node) = 0;
+  virtual bool setConfigInputNode(const std::string &input_node) = 0;
 
-  virtual bool set_config_output_node(const std::string &output_node) = 0;
+  virtual bool setConfigOutputNode(const std::string &output_node) = 0;
 
-  virtual bool set_config_engine_path(const std::string &engine_path) = 0;
+  virtual bool setConfigEnginePath(const std::string &engine_path) = 0;
 
-  virtual bool set_config_colors_path(const std::string &colors_path) = 0;
+  virtual bool setConfigColorsPath(const std::string &colors_path) = 0;
 };
 
 #endif // TRT_INFERENCE_INTERFACES_H

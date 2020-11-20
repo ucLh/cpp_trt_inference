@@ -29,10 +29,10 @@ public:
 protected:
   bool processOutput(const samplesCommon::BufferManager &buffers);
 
-  std::vector<float> _scores;
-  std::vector<int> _classes;
+  std::vector<float> m_scores;
+  std::vector<int> m_classes;
 
-  float _thresh = 0.5;
+  float m_thresh = 0.5;
 };
 
 #endif // TRT_CLASSIFICATION_INFERENCER_H

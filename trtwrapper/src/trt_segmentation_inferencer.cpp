@@ -5,15 +5,15 @@
 #include <vector>
 
 TRTSegmentationInferencer::TRTSegmentationInferencer() {
-  data_handler_ = make_unique<DataHandling>();
-  _norm_type = NormalizeType::SEGMENTATION;
-  _bgr2rgb = true;
-  colored_mask_ = cv::Mat(rows_, cols_, CV_8UC3);
-  index_mask_ = cv::Mat(rows_, cols_, CV_8UC1);
+  m_data_handler = make_unique<DataHandling>();
+  m_norm_type = NormalizeType::SEGMENTATION;
+  m_bgr2rgb = true;
+  m_colored_mask = cv::Mat(m_rows, m_cols, CV_8UC3);
+  m_index_mask = cv::Mat(m_rows, m_cols, CV_8UC1);
 }
 
 string TRTSegmentationInferencer::inference(const std::vector<cv::Mat> &imgs) {
-  if (!ready_for_inference_) {
+  if (!m_ready_for_inference) {
     return "You need to call prepareForInference first.";
   }
 
@@ -26,64 +26,65 @@ string TRTSegmentationInferencer::inference(const std::vector<cv::Mat> &imgs) {
 
 bool TRTSegmentationInferencer::prepareForInference(
     const std::string &config_path) {
-  data_handler_->set_config_path(config_path);
-  data_handler_->load_config();
+  m_data_handler->setConfigPath(config_path);
+  m_data_handler->loadConfig();
 
-  input_node_name_ = data_handler_->get_config_input_node();
-  output_node_names_ = {data_handler_->get_config_output_node()};
+  setInputNodeName(m_data_handler->getConfigInputNode());
+  setOutputNodeName({m_data_handler->getConfigOutputNode()});
 
-  rows_ = data_handler_->get_config_input_size().height;
-  cols_ = data_handler_->get_config_input_size().width;
-  _input_shape = {rows_, cols_, 3};
+  m_rows = m_data_handler->getConfigInputSize().height;
+  m_cols = m_data_handler->getConfigInputSize().width;
+  m_input_shape = {m_rows, m_cols, 3};
 
-  data_handler_->load_colors();
-  colors_ = data_handler_->get_colors();
-  num_classes_actual_ = colors_.size();
+  m_data_handler->loadColors();
+  m_colors = m_data_handler->getColors();
+  m_num_classes_actual = m_colors.size();
 
-  TRTCNNInferencer::loadFromCudaEngine(data_handler_->get_config_engine_path());
-  ready_for_inference_ = true;
+  TRTCNNInferencer::loadFromCudaEngine(m_data_handler->getConfigEnginePath());
+  m_ready_for_inference = true;
   return true;
 }
 
 string TRTSegmentationInferencer::makeIndexMask() {
-  bool ok = processOutputArgmaxed(*_buffers);
+  bool ok = processOutputArgmaxed(*m_buffers);
 
   if (!ok) {
-    return _last_error;
+    return m_last_error;
   }
-  index_mask_ready_ = true;
+  m_index_mask_ready = true;
   return "OK";
 }
 
 string TRTSegmentationInferencer::makeColorMask(float alpha,
                                                 const cv::Mat &original_image) {
-  bool ok = processOutputColoredArgmaxed(*_buffers, alpha, original_image);
+  bool ok = processOutputColoredArgmaxed(*m_buffers, alpha, original_image);
 
   if (!ok) {
-    return _last_error;
+    return m_last_error;
   }
-  color_mask_ready_ = true;
+  m_color_mask_ready = true;
   return "OK";
 }
 
 bool TRTSegmentationInferencer::processOutputColored(
     const samplesCommon::BufferManager &buffers, float alpha,
     const cv::Mat &original_image) {
+  auto output_node_name = getOutputNodeName()[0];
   auto *hostDataBuffer =
-      static_cast<float *>(buffers.getHostBuffer(output_node_names_[0]));
+      static_cast<float *>(buffers.getHostBuffer(output_node_name));
   // NOTE: buffers.size give bytes, not length, be careful
   const size_t num_of_elements =
-      (buffers.size(output_node_names_[0]) / sizeof(float)) / _batch_size;
+      (buffers.size(output_node_name) / sizeof(float)) / m_batch_size;
 
   if (!hostDataBuffer) {
-    _last_error = "Can not get output tensor by name " + output_node_names_[0];
+    m_last_error = "Can not get output tensor by name " + output_node_name;
     return false;
   }
 
-  int size = rows_ * cols_;
+  int size = m_rows * m_cols;
   size_t num_channels = num_of_elements / (size);
   cv::Mat img;
-  cv::resize(original_image, img, cv::Size(cols_, rows_), 0, 0);
+  cv::resize(original_image, img, cv::Size(m_cols, m_rows), 0, 0);
   img = img.reshape(0, 1);
   //  cv::Vec3b pixel;
   //  uint8_t *indexes_ptr = indexes.data;
@@ -98,15 +99,15 @@ bool TRTSegmentationInferencer::processOutputColored(
     int maxElementIndex =
         std::max_element(point.begin(), point.end()) - point.begin();
 
-    cv::Vec3b &pixel = colored_mask_.at<cv::Vec3b>(cv::Point(i, 0));
+    cv::Vec3b &pixel = m_colored_mask.at<cv::Vec3b>(cv::Point(i, 0));
     cv::Vec3b img_pixel = img.at<cv::Vec3b>(cv::Point(i, 0));
-    pixel[0] = (1 - alpha) * colors_[maxElementIndex][2] + alpha * img_pixel[2];
-    pixel[1] = (1 - alpha) * colors_[maxElementIndex][1] + alpha * img_pixel[1];
-    pixel[2] = (1 - alpha) * colors_[maxElementIndex][0] + alpha * img_pixel[0];
+    pixel[0] = (1 - alpha) * m_colors[maxElementIndex][2] + alpha * img_pixel[2];
+    pixel[1] = (1 - alpha) * m_colors[maxElementIndex][1] + alpha * img_pixel[1];
+    pixel[2] = (1 - alpha) * m_colors[maxElementIndex][0] + alpha * img_pixel[0];
     std::fill(point.begin(), point.end(), -1);
   }
 
-  colored_mask_ = colored_mask_.reshape(0, rows_);
+  m_colored_mask = m_colored_mask.reshape(0, m_rows);
 
   return true;
 }
@@ -114,15 +115,16 @@ bool TRTSegmentationInferencer::processOutputColored(
 bool TRTSegmentationInferencer::processOutputColoredFast(
     const samplesCommon::BufferManager &buffers, float alpha,
     const cv::Mat &original_image) {
+  auto output_node_name = getOutputNodeName()[0];
   auto *hostDataBuffer = static_cast<half_float::half *>(
-      buffers.getHostBuffer(output_node_names_[0]));
+      buffers.getHostBuffer(output_node_name));
   // NOTE: buffers.size give bytes, not length, be careful
   const size_t num_of_elements =
-      (buffers.size(output_node_names_[0]) / sizeof(half_float::half)) /
-      _batch_size;
+      (buffers.size(output_node_name) / sizeof(half_float::half)) /
+      m_batch_size;
 
   if (!hostDataBuffer) {
-    _last_error = "Can not get output tensor by name " + output_node_names_[0];
+    m_last_error = "Can not get output tensor by name " + output_node_name;
     return false;
   }
   //  int img_size = rows * cols;
@@ -132,21 +134,21 @@ bool TRTSegmentationInferencer::processOutputColoredFast(
   // is lower, the remaining channels will be filled with zeros
   const int num_classes = 16;
 
-  cv::Mat net_output(rows_, cols_, CV_16FC(num_classes), hostDataBuffer);
-  uint8_t *mask_ptr = colored_mask_.data;
+  cv::Mat net_output(m_rows, m_cols, CV_16FC(num_classes), hostDataBuffer);
+  uint8_t *mask_ptr = m_colored_mask.data;
   cv::Mat img;
-  cv::resize(original_image, img, cv::Size(cols_, rows_), 0, 0);
+  cv::resize(original_image, img, cv::Size(m_cols, m_rows), 0, 0);
   uint8_t *img_ptr = img.data;
   typedef cv::Vec<cv::float16_t, num_classes> Vecnb;
   net_output.forEach<Vecnb>([&](Vecnb &pixel, const int position[]) -> void {
-    std::vector<float> p{pixel.val, pixel.val + num_classes_actual_};
+    std::vector<float> p{pixel.val, pixel.val + m_num_classes_actual};
     int maxElementIndex = std::max_element(p.begin(), p.end()) - p.begin();
-    int hw_pos = position[0] * cols_ + position[1];
-    mask_ptr[3 * hw_pos + 0] = (1 - alpha) * colors_[maxElementIndex][2] +
+    int hw_pos = position[0] * m_cols + position[1];
+    mask_ptr[3 * hw_pos + 0] = (1 - alpha) * m_colors[maxElementIndex][2] +
                                alpha * img_ptr[3 * hw_pos + 0];
-    mask_ptr[3 * hw_pos + 1] = (1 - alpha) * colors_[maxElementIndex][1] +
+    mask_ptr[3 * hw_pos + 1] = (1 - alpha) * m_colors[maxElementIndex][1] +
                                alpha * img_ptr[3 * hw_pos + 1];
-    mask_ptr[3 * hw_pos + 2] = (1 - alpha) * colors_[maxElementIndex][0] +
+    mask_ptr[3 * hw_pos + 2] = (1 - alpha) * m_colors[maxElementIndex][0] +
                                alpha * img_ptr[3 * hw_pos + 2];
   });
 
@@ -155,20 +157,21 @@ bool TRTSegmentationInferencer::processOutputColoredFast(
 
 bool TRTSegmentationInferencer::processOutput(
     const samplesCommon::BufferManager &buffers) {
+  auto output_node_name = getOutputNodeName()[0];
   auto *hostDataBuffer =
-      static_cast<float *>(buffers.getHostBuffer(output_node_names_[0]));
+      static_cast<float *>(buffers.getHostBuffer(output_node_name));
   // NOTE: buffers.size give bytes, not length, be careful
   const size_t num_of_elements =
-      (buffers.size(output_node_names_[0]) / sizeof(float)) / _batch_size;
+      (buffers.size(output_node_name) / sizeof(float)) / m_batch_size;
 
   if (!hostDataBuffer) {
-    _last_error = "Can not get output tensor by name " + output_node_names_[0];
+    m_last_error = "Can not get output tensor by name " + output_node_name;
     return false;
   }
 
-  int size = rows_ * cols_;
+  int size = m_rows * m_cols;
   size_t num_channels = num_of_elements / (size);
-  uint8_t *indexes_ptr = index_mask_.data;
+  uint8_t *indexes_ptr = m_index_mask.data;
   int maxElementIndex = -1;
 
   std::vector<float> point(num_channels);
@@ -183,22 +186,23 @@ bool TRTSegmentationInferencer::processOutput(
     indexes_ptr[0, i] = maxElementIndex;
   }
 
-  index_mask_ = index_mask_.reshape(0, rows_);
+  m_index_mask = m_index_mask.reshape(0, m_rows);
 
   return true;
 }
 
 bool TRTSegmentationInferencer::processOutputFast(
     const samplesCommon::BufferManager &buffers) {
+  auto output_node_name = getOutputNodeName()[0];
   auto *hostDataBuffer = static_cast<half_float::half *>(
-      buffers.getHostBuffer(output_node_names_[0]));
+      buffers.getHostBuffer(output_node_name));
   // NOTE: buffers.size give bytes, not length, be careful
   const size_t num_of_elements =
-      (buffers.size(output_node_names_[0]) / sizeof(half_float::half)) /
-      _batch_size;
+      (buffers.size(output_node_name) / sizeof(half_float::half)) /
+      m_batch_size;
 
   if (!hostDataBuffer) {
-    _last_error = "Can not get output tensor by name " + output_node_names_[0];
+    m_last_error = "Can not get output tensor by name " + output_node_name;
     return false;
   }
   //  int img_size = rows * cols;
@@ -208,13 +212,13 @@ bool TRTSegmentationInferencer::processOutputFast(
   // is lower, the remaining channels will be filled with zeros
   const int num_classes = 16;
 
-  cv::Mat net_output(rows_, cols_, CV_16FC(num_classes), hostDataBuffer);
-  uint8_t *indexes_ptr = index_mask_.data;
+  cv::Mat net_output(m_rows, m_cols, CV_16FC(num_classes), hostDataBuffer);
+  uint8_t *indexes_ptr = m_index_mask.data;
   typedef cv::Vec<cv::float16_t, num_classes> Vecnb;
   net_output.forEach<Vecnb>([&](Vecnb &pixel, const int position[]) -> void {
-    std::vector<float> p{pixel.val, pixel.val + num_classes_actual_};
+    std::vector<float> p{pixel.val, pixel.val + m_num_classes_actual};
     int maxElementIndex = std::max_element(p.begin(), p.end()) - p.begin();
-    indexes_ptr[0, position[0] * cols_ + position[1]] = maxElementIndex;
+    indexes_ptr[0, position[0] * m_cols + position[1]] = maxElementIndex;
   });
 
   return true;
@@ -222,43 +226,55 @@ bool TRTSegmentationInferencer::processOutputFast(
 
 bool TRTSegmentationInferencer::processOutputArgmaxed(
     const samplesCommon::BufferManager &buffers) {
+  auto output_node_name = getOutputNodeName()[0];
   auto *hostDataBuffer =
-      static_cast<int *>(buffers.getHostBuffer(output_node_names_[0]));
+      static_cast<int *>(buffers.getHostBuffer(output_node_name));
   // NOTE: buffers.size give bytes, not length, be careful
   const size_t num_of_elements =
-      (buffers.size(output_node_names_[0]) / sizeof(int)) / _batch_size;
+      (buffers.size(output_node_name) / sizeof(int)) / m_batch_size;
+  if (!hostDataBuffer) {
+    m_last_error = "Can not get output tensor by name " + output_node_name;
+    return false;
+  }
+
   std::vector<int> data_vec{hostDataBuffer, hostDataBuffer + num_of_elements};
-  index_mask_ = cv::Mat(data_vec).reshape(1, rows_);
+  m_index_mask = cv::Mat(data_vec).reshape(1, m_rows);
   return true;
 }
 
 bool TRTSegmentationInferencer::processOutputColoredArgmaxed(
     const samplesCommon::BufferManager &buffers, float alpha,
     const cv::Mat &original_image) {
+  auto output_node_name = getOutputNodeName()[0];
   auto *hostDataBuffer =
-      static_cast<int *>(buffers.getHostBuffer(output_node_names_[0]));
+      static_cast<int *>(buffers.getHostBuffer(output_node_name));
   // NOTE: buffers.size give bytes, not length, be careful
   const size_t num_of_elements =
-      (buffers.size(output_node_names_[0]) / sizeof(int)) / _batch_size;
+      (buffers.size(output_node_name) / sizeof(int)) / m_batch_size;
+  if (!hostDataBuffer) {
+    m_last_error = "Can not get output tensor by name " + output_node_name;
+    return false;
+  }
+
   std::vector<int> data_vec{hostDataBuffer, hostDataBuffer + num_of_elements};
-  index_mask_ = cv::Mat(data_vec).reshape(1, rows_);
+  m_index_mask = cv::Mat(data_vec).reshape(1, m_rows);
   // Call to the processOutputArgmaxed does not give the expected result right
   // now,
   // so for now we are repeating the code.
 
-  uint8_t *mask_ptr = colored_mask_.data;
+  uint8_t *mask_ptr = m_colored_mask.data;
   cv::Mat img;
-  cv::resize(original_image, img, cv::Size(cols_, rows_), 0, 0);
+  cv::resize(original_image, img, cv::Size(m_cols, m_rows), 0, 0);
   uint8_t *img_ptr = img.data;
 
-  index_mask_.forEach<cv::Vec<int, 1>>(
+  m_index_mask.forEach<cv::Vec<int, 1>>(
       [&](cv::Vec<int, 1> pixel, const int position[]) -> void {
-        int hw_pos = position[0] * cols_ + position[1];
-        mask_ptr[3 * hw_pos + 0] = (1 - alpha) * colors_[pixel.val[0]][2] +
+        int hw_pos = position[0] * m_cols + position[1];
+        mask_ptr[3 * hw_pos + 0] = (1 - alpha) * m_colors[pixel.val[0]][2] +
                                    alpha * img_ptr[3 * hw_pos + 0];
-        mask_ptr[3 * hw_pos + 1] = (1 - alpha) * colors_[pixel.val[0]][1] +
+        mask_ptr[3 * hw_pos + 1] = (1 - alpha) * m_colors[pixel.val[0]][1] +
                                    alpha * img_ptr[3 * hw_pos + 1];
-        mask_ptr[3 * hw_pos + 2] = (1 - alpha) * colors_[pixel.val[0]][0] +
+        mask_ptr[3 * hw_pos + 2] = (1 - alpha) * m_colors[pixel.val[0]][0] +
                                    alpha * img_ptr[3 * hw_pos + 2];
       });
 
@@ -266,8 +282,8 @@ bool TRTSegmentationInferencer::processOutputColoredArgmaxed(
 }
 
 cv::Mat &TRTSegmentationInferencer::getColorMask() {
-  if (color_mask_ready_) {
-    return colored_mask_;
+  if (m_color_mask_ready) {
+    return m_colored_mask;
   } else {
     std::cerr << "You have to call makeColorMask() first!"
               << "\n";
@@ -276,8 +292,8 @@ cv::Mat &TRTSegmentationInferencer::getColorMask() {
 }
 
 cv::Mat &TRTSegmentationInferencer::getIndexMask() {
-  if (index_mask_ready_) {
-    return index_mask_;
+  if (m_index_mask_ready) {
+    return m_index_mask;
   } else {
     std::cerr << "You have to call makeIndexMask() first!"
               << "\n";

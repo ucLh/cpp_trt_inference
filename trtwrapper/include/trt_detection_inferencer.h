@@ -39,16 +39,16 @@ public:
 protected:
   bool processOutput(const samplesCommon::BufferManager &buffers);
 
-  size_t _layout_size = 7;
-  float _thresh = 0.5;
+  size_t m_layout_size = 7;
+  float m_thresh = 0.5;
 
-  std::vector<std::vector<cv::Rect2f>> _boxes;
-  std::vector<std::vector<float>> _scores;
-  std::vector<std::vector<int>> _classes;
+  std::vector<std::vector<cv::Rect2f>> m_boxes;
+  std::vector<std::vector<float>> m_scores;
+  std::vector<std::vector<int>> m_classes;
 
 #ifdef TRT_DEBUG
-  std::vector<cv::Mat> _bb_frames;
-  std::vector<cv::Mat> _frames;
+  std::vector<cv::Mat> m_bb_frames;
+  std::vector<cv::Mat> m_frames;
 #endif
 };
 

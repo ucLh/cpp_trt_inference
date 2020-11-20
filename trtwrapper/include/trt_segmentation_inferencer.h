@@ -43,18 +43,18 @@ protected:
   bool processOutputColoredArgmaxed(const samplesCommon::BufferManager &buffers,
                                     float alpha, const cv::Mat &original_image);
 
-  std::unique_ptr<IDataBase> data_handler_;
-  int rows_ = 640;
-  int cols_ = 1280;
-  int num_classes_actual_;
+  std::unique_ptr<IDataBase> m_data_handler;
+  int m_rows = 640;
+  int m_cols = 1280;
+  int m_num_classes_actual;
 
-  cv::Mat colored_mask_;
-  cv::Mat index_mask_;
-  bool color_mask_ready_ = false;
-  bool index_mask_ready_ = false;
-  bool ready_for_inference_ = false;
+  cv::Mat m_colored_mask;
+  cv::Mat m_index_mask;
+  bool m_color_mask_ready = false;
+  bool m_index_mask_ready = false;
+  bool m_ready_for_inference = false;
 
-  std::vector<std::array<int, 3>> colors_;
+  std::vector<std::array<int, 3>> m_colors;
 };
 
 #endif // TRTWRAPPER_PROJ_TRT_SEGMENTATION_H

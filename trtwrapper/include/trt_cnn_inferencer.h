@@ -99,11 +99,11 @@ public:
   /// \brief isLoaded
   /// \return  true if last load successful. If not check getLastError method
   ///
-  virtual inline bool isLoaded() const { return _is_loaded; }
+  virtual inline bool isLoaded() const { return m_is_loaded; }
 
   // just name for helps, nothing functional
-  virtual inline std::string getName() const { return _name; }
-  virtual void setName(const std::string &name) { _name = name; }
+  virtual inline std::string getName() const { return m_name; }
+  virtual void setName(const std::string &name) { m_name = name; }
 
   ///
   /// \brief warmUp
@@ -116,9 +116,9 @@ public:
   /// \brief getGpuMemoryFraction from 0.0 to 1.0, means percents of GPU memory
   /// will be used. \return
   ///
-  double getGpuMemoryFraction() const { return _gpu_memory_fraction; }
+  double getGpuMemoryFraction() const { return m_gpu_memory_fraction; }
   void setGpuMemoryFraction(double gpu_memory_fraction) {
-    _gpu_memory_fraction = gpu_memory_fraction;
+    m_gpu_memory_fraction = gpu_memory_fraction;
   }
 
   ///
@@ -128,14 +128,14 @@ public:
   ///  If not check getLastError method
   virtual std::string inference(const std::vector<cv::Mat> &imgs);
 
-  std::string getInputNodeName() const { return input_node_name_; }
-  void setInputNodeName(const std::string &name) { input_node_name_ = name; }
+  std::string getInputNodeName() const { return m_input_node_name; }
+  void setInputNodeName(const std::string &name) { m_input_node_name = name; }
 
   std::vector<std::string> getOutputNodeName() const {
-    return output_node_names_;
+    return m_output_node_names;
   }
   void setOutputNodeName(const std::vector<std::string> &output_node_names) {
-    output_node_names_ = output_node_names;
+    m_output_node_names = output_node_names;
   }
 
   int getInputHeight() const;
@@ -182,46 +182,46 @@ protected:
   void configureGraph();
   void configureGPUMemory();
 
-  std::string _last_error = "";
-  std::string _model_filename = "";
-  BIT_MODE _bit_mode = BIT_MODE::FLOAT16;
+  std::string m_last_error = "";
+  std::string m_model_filename = "";
+  BIT_MODE m_bit_mode = BIT_MODE::FLOAT16;
 
-  std::shared_ptr<nvinfer1::IBuilder> _builder = nullptr;
+  std::shared_ptr<nvinfer1::IBuilder> m_builder = nullptr;
 
-  std::shared_ptr<nvonnxparser::IParser> _onnx_parser = nullptr;
+  std::shared_ptr<nvonnxparser::IParser> m_onnx_parser = nullptr;
 
-  std::shared_ptr<nvuffparser::IUffParser> _uff_parser = nullptr;
+  std::shared_ptr<nvuffparser::IUffParser> m_uff_parser = nullptr;
 
-  std::shared_ptr<nvinfer1::INetworkDefinition> _network_definition = nullptr;
+  std::shared_ptr<nvinfer1::INetworkDefinition> m_network_definition = nullptr;
 
-  nvinfer1::Dims3 _input_shape = {300, 300, 3};
+  nvinfer1::Dims3 m_input_shape = {300, 300, 3};
 
   // nvuffparser::UffInputOrder _input_order =
   // nvuffparser::UffInputOrder::kNCHW;
-  std::shared_ptr<nvinfer1::IBuilderConfig> _builder_config = nullptr;
-  std::shared_ptr<nvinfer1::ICudaEngine> _cuda_engine{nullptr};
-  std::shared_ptr<IRuntime> _runtime = nullptr;
-  std::shared_ptr<IExecutionContext> _context = nullptr;
+  std::shared_ptr<nvinfer1::IBuilderConfig> m_builder_config = nullptr;
+  std::shared_ptr<nvinfer1::ICudaEngine> m_cuda_engine{nullptr};
+  std::shared_ptr<IRuntime> m_runtime = nullptr;
+  std::shared_ptr<IExecutionContext> m_context = nullptr;
 
-  std::shared_ptr<samplesCommon::BufferManager> _buffers;
+  std::shared_ptr<samplesCommon::BufferManager> m_buffers;
 
-  size_t _batch_size = 1;
+  size_t m_batch_size = 1;
 
-  std::vector<std::vector<int>> _label_colors = {{0, 0, 0}};
+  std::vector<std::vector<int>> m_label_colors = {{0, 0, 0}};
 
-  std::vector<std::string> _label_names = {"none"};
+  std::vector<std::string> m_label_names = {"none"};
 
-  std::string input_node_name_ = "Input";
-  std::vector<std::string> output_node_names_ = {"NMS"};
+  std::string m_input_node_name = "Input";
+  std::vector<std::string> m_output_node_names = {"NMS"};
 
-  bool _is_loaded = false;
+  bool m_is_loaded = false;
 
-  std::string _name = "UnknownModel";
-  double _gpu_memory_fraction = 0.9;
+  std::string m_name = "UnknownModel";
+  double m_gpu_memory_fraction = 0.9;
 
-  NormalizeType _norm_type = NormalizeType::DETECTION;
-  std::vector<float> deviation = {0.229, 0.224, 0.225};
-  bool _bgr2rgb = true; // otherwise RGB
+  NormalizeType m_norm_type = NormalizeType::DETECTION;
+  std::vector<float> m_deviation = {0.229, 0.224, 0.225};
+  bool m_bgr2rgb = true; // otherwise RGB
 };
 
 #endif // TRT_CNN_INFERENCER_H

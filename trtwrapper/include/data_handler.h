@@ -15,7 +15,34 @@ public:
   DataHandling() = default;
   virtual ~DataHandling() = default;
 
-  struct config_data {
+  bool loadColors() override;
+
+  bool loadConfig() override;
+
+  bool setConfigPath(std::string path) override;
+
+  cv::Size getConfigInputSize() override;
+
+  std::string getConfigInputNode() override;
+
+  std::string getConfigOutputNode() override;
+
+  std::string getConfigEnginePath() override;
+
+  std::vector<std::array<int, 3>> getColors() override;
+
+  bool setConfigInputSize(const cv::Size &size) override;
+
+  bool setConfigInputNode(const std::string &input_node) override;
+
+  bool setConfigOutputNode(const std::string &output_node) override;
+
+  bool setConfigEnginePath(const std::string &engine_path) override;
+
+  bool setConfigColorsPath(const std::string &colors_path) override;
+
+protected:
+  struct configData {
     cv::Size input_size;
     std::string input_node;
     std::string output_node;
@@ -23,40 +50,13 @@ public:
     std::string colors_path;
   };
 
-  std::vector<std::array<int, 3> > colors;
-  config_data config;
-  std::string config_path = "config.json";
+  std::string m_config_path = "config.json";
+  std::vector<std::array<int, 3> > m_colors;
+  configData m_config;
+  std::fstream m_config_datafile;
 
-  bool load_colors() override;
-  bool load_config() override ;
-
-  bool set_config_path(std::string path) override;
-
-  cv::Size get_config_input_size() override;
-
-  std::string get_config_input_node() override;
-
-  std::string get_config_output_node() override;
-
-  std::string get_config_engine_path() override;
-
-  std::vector<std::array<int, 3>> get_colors() override;
-
-  bool set_config_input_size(const cv::Size &size) override;
-
-  bool set_config_input_node(const std::string &input_node) override;
-
-  bool set_config_output_node(const std::string &output_node) override;
-
-  bool set_config_engine_path(const std::string &engine_path) override;
-
-  bool set_config_colors_path(const std::string &colors_path) override;
-
-protected:
-  std::fstream config_datafile_;
-
-  bool open_config();
-  static std::string try_parse_json_member(rapidjson::Document &doc,
+  bool openConfig();
+  static std::string tryParseJsonMember(rapidjson::Document &doc,
                                            const std::string &name,
                                            const std::string &default_val = "");
 };

@@ -480,7 +480,7 @@ inline LogStreamConsumer LOG_WARN(const Logger& logger)
 //!
 //!     LOG_ERROR(logger) << "hello world" << std::endl;
 //!
-inline LogStreamConsumer LOG_ERROR(const Logger& logger)
+inline LogStreamConsumer (LOG_ERROR)(const Logger& logger)
 {
     return LogStreamConsumer(logger.getReportableSeverity(), Severity::kERROR);
 }
@@ -498,6 +498,6 @@ inline LogStreamConsumer LOG_FATAL(const Logger& logger)
     return LogStreamConsumer(logger.getReportableSeverity(), Severity::kINTERNAL_ERROR);
 }
 
-} // anonymous namespace
+} // TRT_LOGGER namespace
 
 #endif // TENSORRT_LOGGING_H

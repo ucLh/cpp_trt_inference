@@ -21,7 +21,7 @@ public:
   cv::Mat getColorMask(float alpha, const cv::Mat &original_image);
 
 protected:
-  std::unique_ptr<ISegmentationInferenceHandler> inference_handler_;
+  std::unique_ptr<ISegmentationInferenceHandler> m_inference_handler;
 };
 
 #endif // TRT_INFERENCE_SEGMENTATION_WRAPPER_H

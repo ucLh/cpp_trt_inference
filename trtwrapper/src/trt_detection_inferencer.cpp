@@ -1,20 +1,20 @@
 #include "trt_detection_inferencer.h"
 
 TRTDetectionInferencer::TRTDetectionInferencer() {
-  _norm_type = NormalizeType::CLASSIFICATION_SLIM;
-  _bgr2rgb = true;
+  m_norm_type = NormalizeType::CLASSIFICATION_SLIM;
+  m_bgr2rgb = true;
 }
 
 string TRTDetectionInferencer::inference(const std::vector<cv::Mat> &imgs) {
 
 #ifdef TRT_DEBUG
-  _frames.clear();
-  _bb_frames.clear();
+  m_frames.clear();
+  m_bb_frames.clear();
 
   for (auto fr : imgs) {
     cv::Mat t;
     fr.copyTo(t);
-    _frames.push_back(t);
+    m_frames.push_back(t);
   }
 #endif
 
@@ -24,10 +24,10 @@ string TRTDetectionInferencer::inference(const std::vector<cv::Mat> &imgs) {
     return status;
   }
 
-  bool ok = processOutput(*_buffers);
+  bool ok = processOutput(*m_buffers);
 
   if (!ok) {
-    return _last_error;
+    return m_last_error;
   }
 
   return "OK";
@@ -37,36 +37,36 @@ string TRTDetectionInferencer::inference(const std::vector<cv::Mat> &imgs) {
 std::vector<cv::Mat>
 TRTDetectionInferencer::getFramesWithBoundingBoxes(float tresh) {
   if (tresh == 0.0f) {
-    tresh = _thresh;
+    tresh = m_thresh;
   }
 
-  if (_bb_frames.size()) {
-    return _bb_frames;
+  if (m_bb_frames.size()) {
+    return m_bb_frames;
   }
 
-  for (short i = 0, total = _frames.size(); i < total; ++i) {
+  for (short i = 0, total = m_frames.size(); i < total; ++i) {
     cv::Mat frame;
-    _frames[i].copyTo(frame);
+    m_frames[i].copyTo(frame);
 
-    for (short j = 0; j < _boxes[i].size(); ++j) {
+    for (short j = 0; j < m_boxes[i].size(); ++j) {
 
-      if (_scores[i][j] < tresh)
+      if (m_scores[i][j] < tresh)
         continue;
 
-      const int x = _boxes[i][j].tl().x * (float)frame.cols;
-      const int y = _boxes[i][j].tl().y * (float)frame.rows;
-      const int x1 = _boxes[i][j].br().x * (float)frame.cols;
-      const int y1 = _boxes[i][j].br().y * (float)frame.rows;
+      const int x = m_boxes[i][j].tl().x * (float)frame.cols;
+      const int y = m_boxes[i][j].tl().y * (float)frame.rows;
+      const int x1 = m_boxes[i][j].br().x * (float)frame.cols;
+      const int y1 = m_boxes[i][j].br().y * (float)frame.rows;
       cv::Scalar color = cv::Scalar(250, 250, 250);
 
-      if (_label_colors.size() > _classes[i][j]) {
-        const auto &cl = _label_colors[_classes[i][j]];
+      if (m_label_colors.size() > m_classes[i][j]) {
+        const auto &cl = m_label_colors[m_classes[i][j]];
         color = cv::Scalar(cl[0], cl[1], cl[2]);
       }
 
       std::string name = "Object";
-      if (_label_names.size() > _classes[i][j]) {
-        name = _label_names[_classes[i][j]];
+      if (m_label_names.size() > m_classes[i][j]) {
+        name = m_label_names[m_classes[i][j]];
       }
 
       cv::rectangle(frame, cv::Point(x, y), cv::Point(x1, y1), color, 4);
@@ -74,51 +74,51 @@ TRTDetectionInferencer::getFramesWithBoundingBoxes(float tresh) {
                   2.0, color, 2);
     }
 
-    _bb_frames.push_back(frame);
+    m_bb_frames.push_back(frame);
   }
 
-  return _bb_frames;
+  return m_bb_frames;
 }
 #endif
 
 bool TRTDetectionInferencer::processOutput(
     const samplesCommon::BufferManager &buffers) {
   float *hostDataBuffer =
-      static_cast<float *>(buffers.getHostBuffer(output_node_names_[0]));
+      static_cast<float *>(buffers.getHostBuffer(m_output_node_names[0]));
   // NOTE: buffers.size give bytes, not lenght, be carefull
   const size_t size =
-      (buffers.size(output_node_names_[0]) / sizeof(float)) / _batch_size;
+      (buffers.size(m_output_node_names[0]) / sizeof(float)) / m_batch_size;
 
   if (!hostDataBuffer) {
-    _last_error = "Can not get output tensor by name " + output_node_names_[0];
+    m_last_error = "Can not get output tensor by name " + m_output_node_names[0];
     return false;
   }
 
   /// parse it?
 
-  if (size % _layout_size) {
-    _last_error = "Number of outputs not correspond with layout size";
+  if (size % m_layout_size) {
+    m_last_error = "Number of outputs not correspond with layout size";
     return false;
   }
 
-  _boxes.clear();
-  _classes.clear();
-  _scores.clear();
+  m_boxes.clear();
+  m_classes.clear();
+  m_scores.clear();
 
-  _boxes.resize(_batch_size);
-  _classes.resize(_batch_size);
-  _scores.resize(_batch_size);
+  m_boxes.resize(m_batch_size);
+  m_classes.resize(m_batch_size);
+  m_scores.resize(m_batch_size);
 
-  const size_t number_of_detections = size / _layout_size;
-  for (size_t example_num = 0; example_num < _batch_size; ++example_num) {
+  const size_t number_of_detections = size / m_layout_size;
+  for (size_t example_num = 0; example_num < m_batch_size; ++example_num) {
 
-    _boxes[example_num].resize(number_of_detections);
-    _scores[example_num].resize(number_of_detections);
-    _classes[example_num].resize(number_of_detections);
+    m_boxes[example_num].resize(number_of_detections);
+    m_scores[example_num].resize(number_of_detections);
+    m_classes[example_num].resize(number_of_detections);
 
     for (size_t index = 0; index < number_of_detections; ++index) {
       const size_t prefix =
-          (example_num * number_of_detections) + index * _layout_size;
+          (example_num * number_of_detections) + index * m_layout_size;
 
       //            std::cout << hostDataBuffer[prefix +0] << " " <<
       //            hostDataBuffer[prefix + 1] << " " << hostDataBuffer[prefix
@@ -142,10 +142,10 @@ bool TRTDetectionInferencer::processOutput(
       const float xmax = hostDataBuffer[prefix + 5];
       const float ymax = hostDataBuffer[prefix + 6];
 
-      _boxes[example_num][index] =
+      m_boxes[example_num][index] =
           cv::Rect2f(xmin, ymin, xmax - xmin, ymax - ymin);
-      _scores[example_num][index] = score;
-      _classes[example_num][index] = cl_index;
+      m_scores[example_num][index] = score;
+      m_classes[example_num][index] = cl_index;
     }
   }
 
@@ -153,17 +153,17 @@ bool TRTDetectionInferencer::processOutput(
 }
 
 std::vector<std::vector<int>> TRTDetectionInferencer::getClasses() const {
-  return _classes;
+  return m_classes;
 }
 
 std::vector<std::vector<float>> TRTDetectionInferencer::getScores() const {
-  return _scores;
+  return m_scores;
 }
 
 std::vector<std::vector<cv::Rect2f>> TRTDetectionInferencer::getBoxes() const {
-  return _boxes;
+  return m_boxes;
 }
 
-float TRTDetectionInferencer::getThresh() const { return _thresh; }
+float TRTDetectionInferencer::getThresh() const { return m_thresh; }
 
-void TRTDetectionInferencer::setThresh(float thresh) { _thresh = thresh; }
+void TRTDetectionInferencer::setThresh(float thresh) { m_thresh = thresh; }
