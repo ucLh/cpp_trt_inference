@@ -30,9 +30,18 @@ public:
   cv::Mat &getColorMask() override;
   cv::Mat &getIndexMask() override;
 
+  std::size_t getHostDataBufferBytesNum() override;
+  void *getHostDataBuffer() override;
+
   std::string getLastError() override;
 
 protected:
+  // NOTE: buffers.size give bytes, not length, be careful
+  template <class T>
+  size_t getHostDataBufferSize() {
+    auto output_node_name = getOutputNodeName()[0];
+    return (m_buffers->size(output_node_name) / sizeof(T)) / m_batch_size;
+  }
   bool processOutput(const samplesCommon::BufferManager &buffers) override;
   bool processOutputColored(const samplesCommon::BufferManager &buffers,
                             float alpha, const cv::Mat &original_image);

@@ -20,6 +20,9 @@ public:
 
   cv::Mat getColorMask(float alpha, const cv::Mat &original_image);
 
+  void * getHostDataBuffer();
+
+  size_t getHostDataBufferBytesNum();
 protected:
   std::unique_ptr<ISegmentationInferenceHandler> m_inference_handler;
 };

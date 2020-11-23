@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 
 #include <opencv2/opencv.hpp>
 
@@ -21,6 +22,23 @@ int main() {
   seg_wrapper.inference(img);
   std::cerr << "Status of inference: " << seg_wrapper.getLastError()
             << std::endl;
+
+  // Example of getting the raw data from the net. Data type is:
+  // 1. int for model with argmax op wrapped in its definition.
+  // 2. float for model with fp32 OUTPUT precision (used when we want output
+  // in CHW format) without argmax wrap.
+  // 3. half_float::half (from include/trtwrapper/trt_half.h) for model with
+  // fp16 OUTPUT precision (it is used if we want output in HWC format)
+  // the time.
+  // You can find examples in trt_segmentation_inferencer.cpp (look for
+  // processOutput methods).
+  auto *buffer = static_cast<int *>(seg_wrapper.getHostDataBuffer());
+  size_t buffer_size = seg_wrapper.getHostDataBufferBytesNum() / sizeof(int);
+  for (size_t i = 0; i < buffer_size; ++i) {
+    cout << buffer[i];
+  }
+  cout << '\n';
+
   // Get index or color mask via corresponding method
   cv::imwrite("1_trt_index.jpg", seg_wrapper.getIndexMask());
   cv::imwrite("1_trt_color.jpg", seg_wrapper.getColorMask(0.4, img));

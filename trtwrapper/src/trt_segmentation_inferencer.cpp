@@ -66,15 +66,24 @@ string TRTSegmentationInferencer::makeColorMask(float alpha,
   return "OK";
 }
 
+void *TRTSegmentationInferencer::getHostDataBuffer() {
+  auto output_node_name = getOutputNodeName()[0];
+  return m_buffers->getHostBuffer(output_node_name);
+}
+
+std::size_t TRTSegmentationInferencer::getHostDataBufferBytesNum() {
+  auto output_node_name = getOutputNodeName()[0];
+  return m_buffers->size(output_node_name);
+}
+
 bool TRTSegmentationInferencer::processOutputColored(
     const samplesCommon::BufferManager &buffers, float alpha,
     const cv::Mat &original_image) {
   auto output_node_name = getOutputNodeName()[0];
   auto *hostDataBuffer =
       static_cast<float *>(buffers.getHostBuffer(output_node_name));
-  // NOTE: buffers.size give bytes, not length, be careful
-  const size_t num_of_elements =
-      (buffers.size(output_node_name) / sizeof(float)) / m_batch_size;
+  const size_t num_of_elements = getHostDataBufferSize<float>();
+  assert(num_of_elements % (m_rows * m_cols) == 0);
 
   if (!hostDataBuffer) {
     m_last_error = "Can not get output tensor by name " + output_node_name;
@@ -121,10 +130,8 @@ bool TRTSegmentationInferencer::processOutputColoredFast(
   auto output_node_name = getOutputNodeName()[0];
   auto *hostDataBuffer =
       static_cast<half_float::half *>(buffers.getHostBuffer(output_node_name));
-  // NOTE: buffers.size give bytes, not length, be careful
-  const size_t num_of_elements =
-      (buffers.size(output_node_name) / sizeof(half_float::half)) /
-      m_batch_size;
+  const size_t num_of_elements = getHostDataBufferSize<half_float::half>();
+  assert(num_of_elements % (m_rows * m_cols) == 0);
 
   if (!hostDataBuffer) {
     m_last_error = "Can not get output tensor by name " + output_node_name;
@@ -135,6 +142,7 @@ bool TRTSegmentationInferencer::processOutputColoredFast(
 
   // Needs to be a multiple of 8. If the actual number
   // is lower, the remaining channels will be filled with zeros
+  // See https://docs.nvidia.com/deeplearning/tensorrt/developer-guide/index.html#data-format-desc__fig4
   const int num_classes = 16;
 
   cv::Mat net_output(m_rows, m_cols, CV_16FC(num_classes), hostDataBuffer);
@@ -163,9 +171,8 @@ bool TRTSegmentationInferencer::processOutput(
   auto output_node_name = getOutputNodeName()[0];
   auto *hostDataBuffer =
       static_cast<float *>(buffers.getHostBuffer(output_node_name));
-  // NOTE: buffers.size give bytes, not length, be careful
-  const size_t num_of_elements =
-      (buffers.size(output_node_name) / sizeof(float)) / m_batch_size;
+  const size_t num_of_elements = getHostDataBufferSize<float>();
+  assert(num_of_elements % (m_rows * m_cols) == 0);
 
   if (!hostDataBuffer) {
     m_last_error = "Can not get output tensor by name " + output_node_name;
@@ -199,10 +206,8 @@ bool TRTSegmentationInferencer::processOutputFast(
   auto output_node_name = getOutputNodeName()[0];
   auto *hostDataBuffer =
       static_cast<half_float::half *>(buffers.getHostBuffer(output_node_name));
-  // NOTE: buffers.size give bytes, not length, be careful
-  const size_t num_of_elements =
-      (buffers.size(output_node_name) / sizeof(half_float::half)) /
-      m_batch_size;
+  const size_t num_of_elements = getHostDataBufferSize<half_float::half>();
+  assert(num_of_elements % (m_rows * m_cols) == 0);
 
   if (!hostDataBuffer) {
     m_last_error = "Can not get output tensor by name " + output_node_name;
@@ -232,9 +237,9 @@ bool TRTSegmentationInferencer::processOutputArgmaxed(
   auto output_node_name = getOutputNodeName()[0];
   auto *hostDataBuffer =
       static_cast<int *>(buffers.getHostBuffer(output_node_name));
-  // NOTE: buffers.size give bytes, not length, be careful
-  const size_t num_of_elements =
-      (buffers.size(output_node_name) / sizeof(int)) / m_batch_size;
+  const size_t num_of_elements = getHostDataBufferSize<int>();
+  assert(num_of_elements % (m_rows * m_cols) == 0);
+
   if (!hostDataBuffer) {
     m_last_error = "Can not get output tensor by name " + output_node_name;
     return false;
@@ -251,9 +256,9 @@ bool TRTSegmentationInferencer::processOutputColoredArgmaxed(
   auto output_node_name = getOutputNodeName()[0];
   auto *hostDataBuffer =
       static_cast<int *>(buffers.getHostBuffer(output_node_name));
-  // NOTE: buffers.size give bytes, not length, be careful
-  const size_t num_of_elements =
-      (buffers.size(output_node_name) / sizeof(int)) / m_batch_size;
+  const size_t num_of_elements = getHostDataBufferSize<int>();
+  assert(num_of_elements % (m_rows * m_cols) == 0);
+
   if (!hostDataBuffer) {
     m_last_error = "Can not get output tensor by name " + output_node_name;
     return false;

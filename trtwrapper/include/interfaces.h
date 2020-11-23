@@ -19,6 +19,10 @@ public:
 
   virtual cv::Mat &getColorMask() = 0;
 
+  virtual void *getHostDataBuffer() = 0;
+
+  virtual size_t getHostDataBufferBytesNum() = 0;
+
   virtual std::string getLastError() = 0;
 };
 

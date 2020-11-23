@@ -29,3 +29,11 @@ cv::Mat SegmentationWrapper::getIndexMask() {
   m_inference_handler->makeIndexMask();
   return m_inference_handler->getIndexMask();
 }
+
+void * SegmentationWrapper::getHostDataBuffer() {
+  return m_inference_handler->getHostDataBuffer();
+}
+
+std::size_t SegmentationWrapper::getHostDataBufferBytesNum() {
+  return m_inference_handler->getHostDataBufferBytesNum();
+}
