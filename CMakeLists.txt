@@ -10,3 +10,14 @@ add_subdirectory(trtwrapper)
 #add_subdirectory(application/metrics)
 add_subdirectory(application/segmentation)
 add_subdirectory(application/detection)
+
+
+include(cmake/googletest.cmake)
+fetch_googletest(
+        ${PROJECT_SOURCE_DIR}/cmake
+        ${PROJECT_BINARY_DIR}/googletest
+)
+
+enable_testing()
+add_subdirectory(tests)
+

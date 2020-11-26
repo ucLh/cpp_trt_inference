@@ -40,8 +40,8 @@ int main() {
   cout << '\n';
 
   // Get index or color mask via corresponding method
-  cv::imwrite("1_trt_index.jpg", seg_wrapper.getIndexMask());
-  cv::imwrite("1_trt_color.jpg", seg_wrapper.getColorMask(0.4, img));
+  cv::imwrite("1_trt_index.png", seg_wrapper.getIndexMask());
+  cv::imwrite("1_trt_color.png", seg_wrapper.getColorMask(0.4, img));
   cv::waitKey(0);
 
   // Time measurement. Inference one picture over and over again.
