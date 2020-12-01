@@ -16,13 +16,15 @@ public:
 
   std::string getLastError();
 
-  cv::Mat getIndexMask();
+  cv::Mat getIndexMask(int pixel_sky_border = 0);
 
-  cv::Mat getColorMask(float alpha, const cv::Mat &original_image);
+  cv::Mat getColorMask(float alpha, const cv::Mat &original_image,
+                       int pixel_sky_border = 0);
 
-  void * getHostDataBuffer();
+  void *getHostDataBuffer();
 
   size_t getHostDataBufferBytesNum();
+
 protected:
   std::unique_ptr<ISegmentationInferenceHandler> m_inference_handler;
 };

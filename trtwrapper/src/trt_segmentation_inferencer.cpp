@@ -45,8 +45,8 @@ bool TRTSegmentationInferencer::prepareForInference(
   return true;
 }
 
-string TRTSegmentationInferencer::makeIndexMask() {
-  bool ok = processOutputArgmaxed(*m_buffers);
+string TRTSegmentationInferencer::makeIndexMask(int pixel_sky_border = 0) {
+  bool ok = processOutputArgmaxed(*m_buffers, pixel_sky_border);
 
   if (!ok) {
     return m_last_error;
@@ -56,8 +56,10 @@ string TRTSegmentationInferencer::makeIndexMask() {
 }
 
 string TRTSegmentationInferencer::makeColorMask(float alpha,
-                                                const cv::Mat &original_image) {
-  bool ok = processOutputColoredArgmaxed(*m_buffers, alpha, original_image);
+                                                const cv::Mat &original_image,
+                                                int pixel_sky_border = 0) {
+  bool ok = processOutputColoredArgmaxed(*m_buffers, alpha, original_image,
+                                         pixel_sky_border);
 
   if (!ok) {
     return m_last_error;
@@ -142,7 +144,8 @@ bool TRTSegmentationInferencer::processOutputColoredFast(
 
   // Needs to be a multiple of 8. If the actual number
   // is lower, the remaining channels will be filled with zeros
-  // See https://docs.nvidia.com/deeplearning/tensorrt/developer-guide/index.html#data-format-desc__fig4
+  // See
+  // https://docs.nvidia.com/deeplearning/tensorrt/developer-guide/index.html#data-format-desc__fig4
   const int num_classes = 16;
 
   cv::Mat net_output(m_rows, m_cols, CV_16FC(num_classes), hostDataBuffer);
@@ -233,7 +236,7 @@ bool TRTSegmentationInferencer::processOutputFast(
 }
 
 bool TRTSegmentationInferencer::processOutputArgmaxed(
-    const samplesCommon::BufferManager &buffers) {
+    const samplesCommon::BufferManager &buffers, int pixel_sky_border) {
   auto output_node_name = getOutputNodeName()[0];
   auto *hostDataBuffer =
       static_cast<int *>(buffers.getHostBuffer(output_node_name));
@@ -247,12 +250,19 @@ bool TRTSegmentationInferencer::processOutputArgmaxed(
 
   std::vector<int> data_vec{hostDataBuffer, hostDataBuffer + num_of_elements};
   m_index_mask = cv::Mat(data_vec).reshape(1, m_rows);
+  if (pixel_sky_border) {
+    m_index_mask.forEach<int>([&](int &pixel, const int position[]) -> void {
+      if ((pixel == 1) and (position[0] > pixel_sky_border)) {
+        pixel = 5; // Swap sky for grass in the lower part of the image
+      }
+    });
+  }
   return true;
 }
 
 bool TRTSegmentationInferencer::processOutputColoredArgmaxed(
     const samplesCommon::BufferManager &buffers, float alpha,
-    const cv::Mat &original_image) {
+    const cv::Mat &original_image, int pixel_sky_border) {
   auto output_node_name = getOutputNodeName()[0];
   auto *hostDataBuffer =
       static_cast<int *>(buffers.getHostBuffer(output_node_name));
@@ -275,16 +285,20 @@ bool TRTSegmentationInferencer::processOutputColoredArgmaxed(
   cv::resize(original_image, img, cv::Size(m_cols, m_rows), 0, 0);
   uint8_t *img_ptr = img.data;
 
-  m_index_mask.forEach<cv::Vec<int, 1>>(
-      [&](cv::Vec<int, 1> pixel, const int position[]) -> void {
-        int hw_pos = position[0] * m_cols + position[1];
-        mask_ptr[3 * hw_pos + 0] = (1 - alpha) * m_colors[pixel.val[0]][2] +
-                                   alpha * img_ptr[3 * hw_pos + 0];
-        mask_ptr[3 * hw_pos + 1] = (1 - alpha) * m_colors[pixel.val[0]][1] +
-                                   alpha * img_ptr[3 * hw_pos + 1];
-        mask_ptr[3 * hw_pos + 2] = (1 - alpha) * m_colors[pixel.val[0]][0] +
-                                   alpha * img_ptr[3 * hw_pos + 2];
-      });
+  m_index_mask.forEach<int>([&](int &pixel, const int position[]) -> void {
+    if (pixel_sky_border) {
+      if ((pixel == 1) and (position[0] > pixel_sky_border)) {
+        pixel = 5; // Swap sky for grass in the lower part of the image
+      }
+    }
+    int hw_pos = position[0] * m_cols + position[1];
+    mask_ptr[3 * hw_pos + 0] =
+        (1 - alpha) * m_colors[pixel][2] + alpha * img_ptr[3 * hw_pos + 0];
+    mask_ptr[3 * hw_pos + 1] =
+        (1 - alpha) * m_colors[pixel][1] + alpha * img_ptr[3 * hw_pos + 1];
+    mask_ptr[3 * hw_pos + 2] =
+        (1 - alpha) * m_colors[pixel][0] + alpha * img_ptr[3 * hw_pos + 2];
+  });
 
   return true;
 }

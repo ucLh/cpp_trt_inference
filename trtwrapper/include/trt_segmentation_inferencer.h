@@ -23,9 +23,9 @@ public:
 
   bool prepareForInference(const std::string &config_path) override;
   std::string inference(const std::vector<cv::Mat> &imgs) override;
-  std::string makeIndexMask() override;
-  std::string makeColorMask(float alpha,
-                            const cv::Mat &original_image) override;
+  std::string makeIndexMask(int pixel_sky_border) override;
+  std::string makeColorMask(float alpha, const cv::Mat &original_image,
+                            int pixel_sky_border) override;
 
   cv::Mat &getColorMask() override;
   cv::Mat &getIndexMask() override;
@@ -37,8 +37,7 @@ public:
 
 protected:
   // NOTE: buffers.size give bytes, not length, be careful
-  template <class T>
-  size_t getHostDataBufferSize() {
+  template <class T> size_t getHostDataBufferSize() {
     auto output_node_name = getOutputNodeName()[0];
     return (m_buffers->size(output_node_name) / sizeof(T)) / m_batch_size;
   }
@@ -48,9 +47,11 @@ protected:
   bool processOutputFast(const samplesCommon::BufferManager &buffers);
   bool processOutputColoredFast(const samplesCommon::BufferManager &buffers,
                                 float alpha, const cv::Mat &original_image);
-  bool processOutputArgmaxed(const samplesCommon::BufferManager &buffers);
+  bool processOutputArgmaxed(const samplesCommon::BufferManager &buffers,
+                             int pixel_sky_border);
   bool processOutputColoredArgmaxed(const samplesCommon::BufferManager &buffers,
-                                    float alpha, const cv::Mat &original_image);
+                                    float alpha, const cv::Mat &original_image,
+                                    int pixel_sky_border);
 
   std::unique_ptr<IDataBase> m_data_handler;
   int m_rows = 640;

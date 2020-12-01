@@ -10,10 +10,11 @@ public:
 
   virtual std::string inference(const std::vector<cv::Mat> &imgs) = 0;
 
-  virtual std::string makeIndexMask() = 0;
+  virtual std::string makeIndexMask(int pixel_sky_border) = 0;
 
   virtual std::string makeColorMask(float alpha,
-                                    const cv::Mat &original_image) = 0;
+                                    const cv::Mat &original_image,
+                                    int pixel_sky_border) = 0;
 
   virtual cv::Mat &getIndexMask() = 0;
 

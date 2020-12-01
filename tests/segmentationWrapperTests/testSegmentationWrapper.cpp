@@ -100,3 +100,15 @@ TEST_F(TestSegmentation, infer_multiple_images) {
   cv::Mat index_mask_pred2 = seg_wrapper.getIndexMask();
   ASSERT_TRUE(check_equality(index_mask_actual2, index_mask_pred2));
 }
+
+TEST_F(TestSegmentation, index_and_mask_postprocess) {
+  cv::Mat img2 = cv::imread("images/left_1_000000222.jpg");
+  cv::Mat color_mask_actual2 = cv::imread("images/2_trt_color_postprocessed.png");
+  cv::Mat index_mask_actual2 = cv::imread("images/2_trt_index_postprocessed.png");
+  seg_wrapper.inference(img2);
+
+  cv::Mat index_mask_pred = seg_wrapper.getIndexMask(200);
+  ASSERT_TRUE(check_equality(index_mask_actual2, index_mask_pred));
+  cv::Mat color_mask_pred = seg_wrapper.getColorMask(0.4, img2, 200);
+  ASSERT_TRUE(check_equality(color_mask_actual2, color_mask_pred));
+}

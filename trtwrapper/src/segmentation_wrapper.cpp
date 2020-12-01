@@ -20,17 +20,18 @@ std::string SegmentationWrapper::getLastError() {
 }
 
 cv::Mat SegmentationWrapper::getColorMask(float alpha,
-                                          const cv::Mat &original_image) {
-  m_inference_handler->makeColorMask(alpha, original_image);
+                                          const cv::Mat &original_image,
+                                          int pixel_sky_border) {
+  m_inference_handler->makeColorMask(alpha, original_image, pixel_sky_border);
   return m_inference_handler->getColorMask();
 }
 
-cv::Mat SegmentationWrapper::getIndexMask() {
-  m_inference_handler->makeIndexMask();
+cv::Mat SegmentationWrapper::getIndexMask(int pixel_sky_border) {
+  m_inference_handler->makeIndexMask(pixel_sky_border);
   return m_inference_handler->getIndexMask();
 }
 
-void * SegmentationWrapper::getHostDataBuffer() {
+void *SegmentationWrapper::getHostDataBuffer() {
   return m_inference_handler->getHostDataBuffer();
 }
 
