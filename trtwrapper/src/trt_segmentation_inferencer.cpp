@@ -28,7 +28,30 @@ bool TRTSegmentationInferencer::prepareForInference(
     const std::string &config_path) {
   m_data_handler->setConfigPath(config_path);
   m_data_handler->loadConfig();
+  processConfig();
 
+  if (m_ready_for_inference) {
+    std::cerr << "Warning! You are preparing for inference multiple times"
+              << "\n";
+  }
+  m_ready_for_inference = true;
+  return true;
+}
+
+bool TRTSegmentationInferencer::prepareForInference(
+    const DataHandling::ConfigData &config) {
+  m_data_handler->setConfig(config);
+  processConfig();
+
+  if (m_ready_for_inference) {
+    std::cerr << "Warning! You are preparing for inference multiple times"
+              << "\n";
+  }
+  m_ready_for_inference = true;
+  return true;
+}
+
+bool TRTSegmentationInferencer::processConfig() {
   setInputNodeName(m_data_handler->getConfigInputNode());
   setOutputNodeName({m_data_handler->getConfigOutputNode()});
 
@@ -41,11 +64,9 @@ bool TRTSegmentationInferencer::prepareForInference(
   m_num_classes_actual = m_colors.size();
 
   TRTCNNInferencer::loadFromCudaEngine(m_data_handler->getConfigEnginePath());
-  m_ready_for_inference = true;
-  return true;
 }
 
-string TRTSegmentationInferencer::makeIndexMask(int pixel_sky_border = 0) {
+string TRTSegmentationInferencer::makeIndexMask(int pixel_sky_border) {
   bool ok = processOutputArgmaxed(*m_buffers, pixel_sky_border);
 
   if (!ok) {
@@ -57,7 +78,7 @@ string TRTSegmentationInferencer::makeIndexMask(int pixel_sky_border = 0) {
 
 string TRTSegmentationInferencer::makeColorMask(float alpha,
                                                 const cv::Mat &original_image,
-                                                int pixel_sky_border = 0) {
+                                                int pixel_sky_border) {
   bool ok = processOutputColoredArgmaxed(*m_buffers, alpha, original_image,
                                          pixel_sky_border);
 

@@ -22,6 +22,7 @@ public:
   ~TRTSegmentationInferencer() = default;
 
   bool prepareForInference(const std::string &config_path) override;
+  bool prepareForInference(const IDataBase::ConfigData &config) override;
   std::string inference(const std::vector<cv::Mat> &imgs) override;
   std::string makeIndexMask(int pixel_sky_border) override;
   std::string makeColorMask(float alpha, const cv::Mat &original_image,
@@ -36,6 +37,8 @@ public:
   std::string getLastError() override;
 
 protected:
+  bool processConfig();
+
   // NOTE: buffers.size give bytes, not length, be careful
   template <class T> size_t getHostDataBufferSize() {
     auto output_node_name = getOutputNodeName()[0];

@@ -12,6 +12,10 @@ public:
 
   bool prepareForInference(const std::string &config_path);
 
+  bool prepareForInference(int height, int width, std::string engine_path,
+                           std::string colors_path, std::string input_node,
+                           std::string output_node);
+
   bool inference(cv::Mat &img); // Only batch size 1 for now
 
   std::string getLastError();

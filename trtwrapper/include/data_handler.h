@@ -21,6 +21,8 @@ public:
 
   bool setConfigPath(std::string path) override;
 
+  bool setConfig(const ConfigData &config) override;
+
   cv::Size getConfigInputSize() override;
 
   std::string getConfigInputNode() override;
@@ -28,6 +30,8 @@ public:
   std::string getConfigOutputNode() override;
 
   std::string getConfigEnginePath() override;
+
+  std::string getConfigColorsPath() override;
 
   std::vector<std::array<int, 3>> getColors() override;
 
@@ -42,17 +46,9 @@ public:
   bool setConfigColorsPath(const std::string &colors_path) override;
 
 protected:
-  struct configData {
-    cv::Size input_size;
-    std::string input_node;
-    std::string output_node;
-    std::string engine_path;
-    std::string colors_path;
-  };
-
   std::string m_config_path = "config.json";
   std::vector<std::array<int, 3>> m_colors;
-  configData m_config;
+  ConfigData m_config;
   std::fstream m_config_datafile;
 
   bool openConfig();

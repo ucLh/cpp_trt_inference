@@ -79,6 +79,11 @@ bool DataHandling::setConfigPath(std::string path) {
   return true;
 }
 
+bool DataHandling::setConfig(const IDataBase::ConfigData &config) {
+  m_config = config;
+  return true;
+}
+
 cv::Size DataHandling::getConfigInputSize() { return m_config.input_size; }
 
 std::string DataHandling::getConfigInputNode() { return m_config.input_node; }
@@ -86,6 +91,8 @@ std::string DataHandling::getConfigInputNode() { return m_config.input_node; }
 std::string DataHandling::getConfigOutputNode() { return m_config.output_node; }
 
 std::string DataHandling::getConfigEnginePath() { return m_config.engine_path; }
+
+std::string DataHandling::getConfigColorsPath() { return m_config.colors_path; }
 
 std::vector<std::array<int, 3>> DataHandling::getColors() { return m_colors; }
 
