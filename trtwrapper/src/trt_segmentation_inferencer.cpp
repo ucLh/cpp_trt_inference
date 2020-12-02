@@ -1,5 +1,6 @@
 #include "trt_segmentation_inferencer.h"
 #include "data_handler.h"
+#include "util.h"
 #include <map>
 #include <memory>
 #include <vector>
@@ -8,20 +9,18 @@ TRTSegmentationInferencer::TRTSegmentationInferencer() {
   m_data_handler = make_unique<DataHandling>();
   m_norm_type = NormalizeType::SEGMENTATION;
   m_bgr2rgb = true;
-  m_colored_mask = cv::Mat(m_rows, m_cols, CV_8UC3);
-  m_index_mask = cv::Mat(m_rows, m_cols, CV_8UC1);
 }
 
 string TRTSegmentationInferencer::inference(const std::vector<cv::Mat> &imgs) {
   if (!m_ready_for_inference) {
     return "You need to call prepareForInference first.";
   }
-
+  m_original_cols = imgs[0].cols;
+  m_original_rows = imgs[0].rows;
   std::string status = TRTCNNInferencer::inference(imgs);
 
-  if (status.size() >= 2) {
-    return status;
-  }
+  m_inference_completed = true;
+  return status;
 }
 
 bool TRTSegmentationInferencer::prepareForInference(
@@ -67,6 +66,9 @@ bool TRTSegmentationInferencer::processConfig() {
 }
 
 string TRTSegmentationInferencer::makeIndexMask(int pixel_sky_border) {
+  if (!m_inference_completed) {
+    return "Calling makeIndexMask() before completing inference";
+  }
   bool ok = processOutputArgmaxed(*m_buffers, pixel_sky_border);
 
   if (!ok) {
@@ -79,9 +81,11 @@ string TRTSegmentationInferencer::makeIndexMask(int pixel_sky_border) {
 string TRTSegmentationInferencer::makeColorMask(float alpha,
                                                 const cv::Mat &original_image,
                                                 int pixel_sky_border) {
+  if (!m_inference_completed) {
+    return "Calling makeColorMask() before completing inference";
+  }
   bool ok = processOutputColoredArgmaxed(*m_buffers, alpha, original_image,
                                          pixel_sky_border);
-
   if (!ok) {
     return m_last_error;
   }
@@ -269,15 +273,19 @@ bool TRTSegmentationInferencer::processOutputArgmaxed(
     return false;
   }
 
-  std::vector<int> data_vec{hostDataBuffer, hostDataBuffer + num_of_elements};
+  std::vector<uint8_t> data_vec{hostDataBuffer,
+                                hostDataBuffer + num_of_elements};
   m_index_mask = cv::Mat(data_vec).reshape(1, m_rows);
   if (pixel_sky_border) {
-    m_index_mask.forEach<int>([&](int &pixel, const int position[]) -> void {
-      if ((pixel == 1) and (position[0] > pixel_sky_border)) {
-        pixel = 5; // Swap sky for grass in the lower part of the image
-      }
-    });
+    m_index_mask.forEach<uint8_t>(
+        [&](uint8_t &pixel, const int position[]) -> void {
+          if ((pixel == 1) and (position[0] > pixel_sky_border)) {
+            pixel = 5; // Swap sky for grass in the lower part of the image
+          }
+        });
   }
+  smart_resize(m_index_mask, m_index_mask, {m_original_cols, m_original_rows},
+               cv::INTER_NEAREST);
   return true;
 }
 
@@ -296,17 +304,15 @@ bool TRTSegmentationInferencer::processOutputColoredArgmaxed(
   }
 
   std::vector<int> data_vec{hostDataBuffer, hostDataBuffer + num_of_elements};
-  m_index_mask = cv::Mat(data_vec).reshape(1, m_rows);
-  // Call to the processOutputArgmaxed does not give the expected result right
-  // now,
-  // so for now we are repeating the code.
+  cv::Mat index_mask = cv::Mat(data_vec).reshape(1, m_rows);
 
+  m_colored_mask = cv::Mat(m_rows, m_cols, CV_8UC3);
   uint8_t *mask_ptr = m_colored_mask.data;
   cv::Mat img;
-  cv::resize(original_image, img, cv::Size(m_cols, m_rows), 0, 0);
+  smart_resize(original_image, img, {m_cols, m_rows});
   uint8_t *img_ptr = img.data;
 
-  m_index_mask.forEach<int>([&](int &pixel, const int position[]) -> void {
+  index_mask.forEach<int>([&](int pixel, const int position[]) -> void {
     if (pixel_sky_border) {
       if ((pixel == 1) and (position[0] > pixel_sky_border)) {
         pixel = 5; // Swap sky for grass in the lower part of the image
@@ -320,11 +326,12 @@ bool TRTSegmentationInferencer::processOutputColoredArgmaxed(
     mask_ptr[3 * hw_pos + 2] =
         (1 - alpha) * m_colors[pixel][0] + alpha * img_ptr[3 * hw_pos + 2];
   });
-
+  smart_resize(m_colored_mask, m_colored_mask,
+               {m_original_cols, m_original_rows});
   return true;
 }
 
-cv::Mat &TRTSegmentationInferencer::getColorMask() {
+cv::Mat TRTSegmentationInferencer::getColorMask() {
   if (m_color_mask_ready) {
     return m_colored_mask;
   } else {
@@ -334,7 +341,7 @@ cv::Mat &TRTSegmentationInferencer::getColorMask() {
   }
 }
 
-cv::Mat &TRTSegmentationInferencer::getIndexMask() {
+cv::Mat TRTSegmentationInferencer::getIndexMask() {
   if (m_index_mask_ready) {
     return m_index_mask;
   } else {

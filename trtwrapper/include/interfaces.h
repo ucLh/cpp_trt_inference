@@ -59,9 +59,9 @@ public:
                                     const cv::Mat &original_image,
                                     int pixel_sky_border) = 0;
 
-  virtual cv::Mat &getIndexMask() = 0;
+  virtual cv::Mat getIndexMask() = 0;
 
-  virtual cv::Mat &getColorMask() = 0;
+  virtual cv::Mat getColorMask() = 0;
 
   virtual void *getHostDataBuffer() = 0;
 

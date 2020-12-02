@@ -1,7 +1,7 @@
 #include "segmentation_wrapper.h"
 
-#include <utility>
 #include "trt_segmentation_inferencer.h"
+#include <utility>
 
 SegmentationWrapper::SegmentationWrapper() {
   m_inference_handler = std::make_unique<TRTSegmentationInferencer>();
@@ -39,12 +39,21 @@ std::string SegmentationWrapper::getLastError() {
 cv::Mat SegmentationWrapper::getColorMask(float alpha,
                                           const cv::Mat &original_image,
                                           int pixel_sky_border) {
-  m_inference_handler->makeColorMask(alpha, original_image, pixel_sky_border);
+  std::string status = m_inference_handler->makeColorMask(alpha, original_image,
+                                                          pixel_sky_border);
+  if (status != "OK") {
+    std::cerr << status;
+    throw exception();
+  }
   return m_inference_handler->getColorMask();
 }
 
 cv::Mat SegmentationWrapper::getIndexMask(int pixel_sky_border) {
-  m_inference_handler->makeIndexMask(pixel_sky_border);
+  std::string status = m_inference_handler->makeIndexMask(pixel_sky_border);
+  if (status != "OK") {
+    std::cerr << status;
+    throw exception();
+  }
   return m_inference_handler->getIndexMask();
 }
 

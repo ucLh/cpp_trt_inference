@@ -28,8 +28,8 @@ public:
   std::string makeColorMask(float alpha, const cv::Mat &original_image,
                             int pixel_sky_border) override;
 
-  cv::Mat &getColorMask() override;
-  cv::Mat &getIndexMask() override;
+  cv::Mat getColorMask() override;
+  cv::Mat getIndexMask() override;
 
   std::size_t getHostDataBufferBytesNum() override;
   void *getHostDataBuffer() override;
@@ -59,6 +59,8 @@ protected:
   std::unique_ptr<IDataBase> m_data_handler;
   int m_rows = 640;
   int m_cols = 1280;
+  int m_original_rows = 0;
+  int m_original_cols = 0;
   int m_num_classes_actual;
 
   cv::Mat m_colored_mask;
@@ -66,6 +68,7 @@ protected:
   bool m_color_mask_ready = false;
   bool m_index_mask_ready = false;
   bool m_ready_for_inference = false;
+  bool m_inference_completed = false;
 
   std::vector<std::array<int, 3>> m_colors;
 };
