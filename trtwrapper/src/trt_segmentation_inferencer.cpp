@@ -292,33 +292,21 @@ bool TRTSegmentationInferencer::processOutputArgmaxed(
 bool TRTSegmentationInferencer::processOutputColoredArgmaxed(
     const samplesCommon::BufferManager &buffers, float alpha,
     const cv::Mat &original_image, int pixel_sky_border) {
-  auto output_node_name = getOutputNodeName()[0];
-  auto *hostDataBuffer =
-      static_cast<int *>(buffers.getHostBuffer(output_node_name));
-  const size_t num_of_elements = getHostDataBufferSize<int>();
-  assert(num_of_elements % (m_rows * m_cols) == 0);
+  processOutputArgmaxed(buffers, pixel_sky_border);
 
-  if (!hostDataBuffer) {
-    m_last_error = "Can not get output tensor by name " + output_node_name;
-    return false;
-  }
-
-  std::vector<int> data_vec{hostDataBuffer, hostDataBuffer + num_of_elements};
-  cv::Mat index_mask = cv::Mat(data_vec).reshape(1, m_rows);
-
-  m_colored_mask = cv::Mat(m_rows, m_cols, CV_8UC3);
+  m_colored_mask = cv::Mat(m_original_rows, m_original_cols, CV_8UC3);
   uint8_t *mask_ptr = m_colored_mask.data;
-  cv::Mat img;
-  smart_resize(original_image, img, {m_cols, m_rows});
-  uint8_t *img_ptr = img.data;
+//  cv::Mat img;
+//  smart_resize(original_image, img, {m_cols, m_rows});
+  uint8_t *img_ptr = original_image.data;
 
-  index_mask.forEach<int>([&](int pixel, const int position[]) -> void {
+  m_index_mask.forEach<uchar>([&](uchar pixel, const int position[]) -> void {
     if (pixel_sky_border) {
       if ((pixel == 1) and (position[0] > pixel_sky_border)) {
         pixel = 5; // Swap sky for grass in the lower part of the image
       }
     }
-    int hw_pos = position[0] * m_cols + position[1];
+    int hw_pos = position[0] * m_original_cols + position[1];
     mask_ptr[3 * hw_pos + 0] =
         (1 - alpha) * m_colors[pixel][2] + alpha * img_ptr[3 * hw_pos + 0];
     mask_ptr[3 * hw_pos + 1] =
