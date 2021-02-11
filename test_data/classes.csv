@@ -1,0 +1,12 @@
+name, r, g, b
+'unlabeled',            0,  0,  0
+'sky',                  0,  177,247
+'sand',                 94, 30, 104
+'ground',               191,119,56
+'tree_bush',            40, 140,40
+'raw_grass',            10, 250,30
+'person',               250,0,  55
+'animal',               178,20, 50
+'vehicle',              0,  30, 130
+'green_grass',          0,  255,127
+'trash',                243,15, 190
