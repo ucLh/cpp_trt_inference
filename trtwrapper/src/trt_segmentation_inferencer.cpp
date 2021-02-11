@@ -296,16 +296,9 @@ bool TRTSegmentationInferencer::processOutputColoredArgmaxed(
 
   m_colored_mask = cv::Mat(m_original_rows, m_original_cols, CV_8UC3);
   uint8_t *mask_ptr = m_colored_mask.data;
-//  cv::Mat img;
-//  smart_resize(original_image, img, {m_cols, m_rows});
   uint8_t *img_ptr = original_image.data;
 
   m_index_mask.forEach<uchar>([&](uchar pixel, const int position[]) -> void {
-    if (pixel_sky_border) {
-      if ((pixel == 1) and (position[0] > pixel_sky_border)) {
-        pixel = 5; // Swap sky for grass in the lower part of the image
-      }
-    }
     int hw_pos = position[0] * m_original_cols + position[1];
     mask_ptr[3 * hw_pos + 0] =
         (1 - alpha) * m_colors[pixel][2] + alpha * img_ptr[3 * hw_pos + 0];
@@ -314,8 +307,6 @@ bool TRTSegmentationInferencer::processOutputColoredArgmaxed(
     mask_ptr[3 * hw_pos + 2] =
         (1 - alpha) * m_colors[pixel][0] + alpha * img_ptr[3 * hw_pos + 2];
   });
-  smart_resize(m_colored_mask, m_colored_mask,
-               {m_original_cols, m_original_rows});
   return true;
 }
 
