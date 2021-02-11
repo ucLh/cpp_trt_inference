@@ -1,7 +1,12 @@
 #include "trt_detection_inferencer.h"
+#include "data_handler.h"
+#include <memory>
 
 TRTDetectionInferencer::TRTDetectionInferencer() {
-  m_norm_type = NormalizeType::CLASSIFICATION_SLIM;
+  m_data_handler = std::make_unique<DataHandling>();
+  m_data_handler->loadDetectionLabels();
+  m_detection_labels = m_data_handler->getDetectionLabels();
+  m_norm_type = NormalizeType::DETECTION_YOLOV4;
   m_bgr2rgb = true;
 }
 
@@ -65,8 +70,8 @@ TRTDetectionInferencer::getFramesWithBoundingBoxes(float tresh) {
       }
 
       std::string name = "Object";
-      if (m_label_names.size() > m_classes[i][j]) {
-        name = m_label_names[m_classes[i][j]];
+      if (m_detection_labels.size() > m_classes[i][j]) {
+        name = m_detection_labels[m_classes[i][j]];
       }
 
       cv::rectangle(frame, cv::Point(x, y), cv::Point(x1, y1), color, 4);
@@ -83,25 +88,29 @@ TRTDetectionInferencer::getFramesWithBoundingBoxes(float tresh) {
 
 bool TRTDetectionInferencer::processOutput(
     const samplesCommon::BufferManager &buffers) {
-  float *hostDataBuffer =
-      static_cast<float *>(buffers.getHostBuffer(m_output_node_names[0]));
-  // NOTE: buffers.size give bytes, not lenght, be carefull
-  const size_t size =
-      (buffers.size(m_output_node_names[0]) / sizeof(float)) / m_batch_size;
+  //    float *hostDataBuffer =
+  //        static_cast<float *>(buffers.getHostBuffer(m_output_node_names[0]));
+  auto *num_detections =
+      static_cast<int *>(buffers.getHostBuffer(m_output_node_names[0]));
+  auto *nms_boxes =
+      static_cast<float *>(buffers.getHostBuffer(m_output_node_names[1]));
+  auto *nms_scores =
+      static_cast<float *>(buffers.getHostBuffer(m_output_node_names[2]));
+  auto *nms_classes =
+      static_cast<float *>(buffers.getHostBuffer(m_output_node_names[3]));
 
-  if (!hostDataBuffer) {
-    m_last_error =
-        "Can not get output tensor by name " + m_output_node_names[0];
+  // Check the extraction
+  float *buffers_temp_array[] = {nms_boxes, nms_scores, nms_classes};
+  if (!checkBufferExtraction<int *>(num_detections, 0)) {
     return false;
   }
-
-  /// parse it?
-
-  if (size % m_layout_size) {
-    m_last_error = "Number of outputs not correspond with layout size";
-    return false;
+  for (size_t i = 0; i < 3; ++i) {
+    if (!checkBufferExtraction<float *>(buffers_temp_array[i], i)) {
+      return false;
+    }
   }
 
+  // Parse buffers for drawing
   m_boxes.clear();
   m_classes.clear();
   m_scores.clear();
@@ -110,7 +119,7 @@ bool TRTDetectionInferencer::processOutput(
   m_classes.resize(m_batch_size);
   m_scores.resize(m_batch_size);
 
-  const size_t number_of_detections = size / m_layout_size;
+  const size_t number_of_detections = *num_detections;
   for (size_t example_num = 0; example_num < m_batch_size; ++example_num) {
 
     m_boxes[example_num].resize(number_of_detections);
@@ -118,30 +127,13 @@ bool TRTDetectionInferencer::processOutput(
     m_classes[example_num].resize(number_of_detections);
 
     for (size_t index = 0; index < number_of_detections; ++index) {
-      const size_t prefix =
-          (example_num * number_of_detections) + index * m_layout_size;
+      const int cl_index = nms_classes[index];
+      const float score = nms_scores[index];
 
-      //            std::cout << hostDataBuffer[prefix +0] << " " <<
-      //            hostDataBuffer[prefix + 1] << " " << hostDataBuffer[prefix
-      //            +2] << " "
-      //                                                      <<
-      //                                                      hostDataBuffer[prefix
-      //                                                      +3] << " "<<
-      //                                                      hostDataBuffer[prefix
-      //                                                      +4] << " "
-      //                                                      <<
-      //                                                      hostDataBuffer[prefix
-      //                                                      +5] << " " <<
-      //                                                      hostDataBuffer[prefix
-      //                                                      +6] << std::endl;
-
-      const int cl_index = static_cast<int>(hostDataBuffer[prefix + 1]);
-      const float score = hostDataBuffer[prefix + 2];
-
-      const float xmin = hostDataBuffer[prefix + 3];
-      const float ymin = hostDataBuffer[prefix + 4];
-      const float xmax = hostDataBuffer[prefix + 5];
-      const float ymax = hostDataBuffer[prefix + 6];
+      const float xmin = nms_boxes[4 * index];
+      const float ymin = nms_boxes[4 * index + 1];
+      const float xmax = nms_boxes[4 * index + 2];
+      const float ymax = nms_boxes[4 * index + 3];
 
       m_boxes[example_num][index] =
           cv::Rect2f(xmin, ymin, xmax - xmin, ymax - ymin);

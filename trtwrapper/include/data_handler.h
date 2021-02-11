@@ -19,6 +19,8 @@ public:
 
   bool loadConfig() override;
 
+  bool loadDetectionLabels() override ;
+
   bool setConfigPath(std::string path) override;
 
   bool setConfig(const ConfigData &config) override;
@@ -35,6 +37,8 @@ public:
 
   std::vector<std::array<int, 3>> getColors() override;
 
+  std::vector<std::string> getDetectionLabels() override;
+
   bool setConfigInputSize(const cv::Size &size) override;
 
   bool setConfigInputNode(const std::string &input_node) override;
@@ -48,6 +52,7 @@ public:
 protected:
   std::string m_config_path = "config.json";
   std::vector<std::array<int, 3>> m_colors;
+  std::vector<std::string> m_detection_labels;
   ConfigData m_config;
   std::fstream m_config_datafile;
 

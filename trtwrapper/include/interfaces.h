@@ -12,6 +12,7 @@ public:
     std::string output_node;
     std::string engine_path;
     std::string colors_path;
+    std::string detection_labels_path = "/home/luch/Programming/C++/cpp_trt_inference/detection_label_names.csv";
   };
 
   virtual bool setConfigPath(std::string path) = 0;
@@ -21,6 +22,8 @@ public:
   virtual bool loadConfig() = 0;
 
   virtual bool loadColors() = 0;
+
+  virtual bool loadDetectionLabels() = 0;
 
   virtual cv::Size getConfigInputSize() = 0;
 
@@ -33,6 +36,8 @@ public:
   virtual std::string getConfigColorsPath() = 0;
 
   virtual std::vector<std::array<int, 3>> getColors() = 0;
+
+  virtual std::vector<std::string> getDetectionLabels() = 0;
 
   virtual bool setConfigInputSize(const cv::Size &size) = 0;
 

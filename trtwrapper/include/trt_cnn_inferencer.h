@@ -31,7 +31,11 @@
 template <typename T>
 using SampleUniquePtr = std::unique_ptr<T, samplesCommon::InferDeleter>;
 
-enum NormalizeType { DETECTION, CLASSIFICATION_SLIM, SEGMENTATION };
+enum NormalizeType { DETECTION,
+  CLASSIFICATION_SLIM,
+  SEGMENTATION,
+  DETECTION_YOLOV4
+};
 
 ///
 /// \brief The TRTCNNInferencer class defines interface for TRT inferencers:
@@ -194,7 +198,7 @@ protected:
 
   std::shared_ptr<nvinfer1::INetworkDefinition> m_network_definition = nullptr;
 
-  nvinfer1::Dims3 m_input_shape = {300, 300, 3};
+  nvinfer1::Dims3 m_input_shape = {608, 608, 3};
 
   // nvuffparser::UffInputOrder _input_order =
   // nvuffparser::UffInputOrder::kNCHW;
@@ -209,10 +213,11 @@ protected:
 
   std::vector<std::vector<int>> m_label_colors = {{0, 0, 0}};
 
-  std::vector<std::string> m_label_names = {"none"};
+//  std::vector<std::string> m_label_names = {"none"};
 
-  std::string m_input_node_name = "Input";
-  std::vector<std::string> m_output_node_names = {"NMS"};
+  std::string m_input_node_name = "input";
+  std::vector<std::string> m_output_node_names = {
+      "nms_num_detections", "nms_boxes", "nms_scores", "nms_classes"};
 
   bool m_is_loaded = false;
 

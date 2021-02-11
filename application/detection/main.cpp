@@ -10,10 +10,13 @@ using namespace std;
 int main() {
   /// Legacy TensortRT. Just for checking that we didn't break anything
   {
-    cv::Mat img = cv::imread("1.jpg");
+    cv::Mat img = cv::imread(
+        "/home/luch/Programming/C++/cpp_trt_inference/test_data/images/14.png");
 
     TRTDetectionInferencer inferencer;
-    bool ok = inferencer.loadFromCudaEngine("auto_v4_trt.bin");
+    inferencer.loadFromCudaEngine(
+        "/home/luch/Programming/C++/cpp_trt_inference/test_data/"
+        "yolov4_static_nms.bin");
     // bool ok = inferencer.loadFromUff("ssd_mobilenet_v1_coco.uff");
     std::cerr << "Status of load: " << inferencer.getLastError() << std::endl;
 
@@ -23,7 +26,7 @@ int main() {
     std::cout << "Size:  " << inferencer.getFramesWithBoundingBoxes().size()
               << std::endl;
     cv::Mat im = inferencer.getFramesWithBoundingBoxes()[0];
-    cv::imwrite("1_trt_.jpg", im);
+    cv::imwrite("/home/luch/Programming/C++/cpp_trt_inference/1_trt_.png", im);
     cv::waitKey(0);
 
     auto t1 = std::chrono::high_resolution_clock::now();

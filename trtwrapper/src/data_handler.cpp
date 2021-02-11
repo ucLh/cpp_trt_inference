@@ -70,6 +70,17 @@ bool DataHandling::loadColors() {
   return true;
 }
 
+bool DataHandling::loadDetectionLabels() {
+  io::CSVReader<1> in(m_config.detection_labels_path);
+  in.read_header(io::ignore_extra_column, "class");
+  std::string label;
+  while (in.read_row(label)) {
+    m_detection_labels.emplace_back(label);
+  }
+
+  return true;
+}
+
 bool DataHandling::setConfigPath(std::string path) {
   if (path.empty()) {
     std::cerr << "Config path is empty!" << std::endl;
@@ -95,6 +106,10 @@ std::string DataHandling::getConfigEnginePath() { return m_config.engine_path; }
 std::string DataHandling::getConfigColorsPath() { return m_config.colors_path; }
 
 std::vector<std::array<int, 3>> DataHandling::getColors() { return m_colors; }
+
+std::vector<std::string> DataHandling::getDetectionLabels() {
+  return m_detection_labels;
+}
 
 bool DataHandling::setConfigInputSize(const cv::Size &size) {
   m_config.input_size = size;

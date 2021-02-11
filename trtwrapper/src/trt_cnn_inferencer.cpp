@@ -395,6 +395,8 @@ bool TRTCNNInferencer::processInput(const samplesCommon::BufferManager &buffers,
           val /= 255.0;
           // val -= 0.5;
           // val *= 2.0;
+        } else if (normalize == NormalizeType::DETECTION_YOLOV4) {
+          val /= 255.0;
         }
 
         int pos = 0;

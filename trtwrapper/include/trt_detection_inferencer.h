@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "interfaces.h"
 #include "trt_cnn_inferencer.h"
 
 ///
@@ -38,9 +39,21 @@ public:
 
 protected:
   bool processOutput(const samplesCommon::BufferManager &buffers);
+  template <class T>
+  bool checkBufferExtraction(T const &buffer, int output_node_name_index) {
+    if (!buffer) {
+      m_last_error = "Can not get output tensor by name " +
+                     m_output_node_names[output_node_name_index];
+      return false;
+    }
+    return true;
+  }
 
-  size_t m_layout_size = 7;
-  float m_thresh = 0.5;
+  std::unique_ptr<IDataBase> m_data_handler;
+  std::vector<std::string> m_detection_labels;
+
+//  size_t m_layout_size = 7;
+  float m_thresh = 0.4;
 
   std::vector<std::vector<cv::Rect2f>> m_boxes;
   std::vector<std::vector<float>> m_scores;
