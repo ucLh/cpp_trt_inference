@@ -34,7 +34,7 @@ public:
   std::size_t getHostDataBufferBytesNum() override;
   void *getHostDataBuffer() override;
 
-  std::string getLastError() override;
+  std::string getLastError() const override;
 
 protected:
   bool processConfig();

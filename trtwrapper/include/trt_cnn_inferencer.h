@@ -31,7 +31,8 @@
 template <typename T>
 using SampleUniquePtr = std::unique_ptr<T, samplesCommon::InferDeleter>;
 
-enum NormalizeType { DETECTION,
+enum NormalizeType {
+  DETECTION,
   CLASSIFICATION_SLIM,
   SEGMENTATION,
   DETECTION_YOLOV4
@@ -138,7 +139,7 @@ public:
   std::vector<std::string> getOutputNodeName() const {
     return m_output_node_names;
   }
-  void setOutputNodeName(const std::vector<std::string> &output_node_names) {
+  void setOutputNodeNames(const std::vector<std::string> &output_node_names) {
     m_output_node_names = output_node_names;
   }
 
@@ -213,7 +214,7 @@ protected:
 
   std::vector<std::vector<int>> m_label_colors = {{0, 0, 0}};
 
-//  std::vector<std::string> m_label_names = {"none"};
+  //  std::vector<std::string> m_label_names = {"none"};
 
   std::string m_input_node_name = "input";
   std::vector<std::string> m_output_node_names = {

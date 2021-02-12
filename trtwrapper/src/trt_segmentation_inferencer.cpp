@@ -52,7 +52,7 @@ bool TRTSegmentationInferencer::prepareForInference(
 
 bool TRTSegmentationInferencer::processConfig() {
   setInputNodeName(m_data_handler->getConfigInputNode());
-  setOutputNodeName({m_data_handler->getConfigOutputNode()});
+  setOutputNodeNames(m_data_handler->getConfigOutputNodes());
 
   m_rows = m_data_handler->getConfigInputSize().height;
   m_cols = m_data_handler->getConfigInputSize().width;
@@ -330,6 +330,6 @@ cv::Mat TRTSegmentationInferencer::getIndexMask() {
   }
 }
 
-std::string TRTSegmentationInferencer::getLastError() {
+std::string TRTSegmentationInferencer::getLastError() const {
   return TRTCNNInferencer::getLastError();
 }

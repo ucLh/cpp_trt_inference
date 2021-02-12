@@ -1,14 +1,14 @@
 #ifndef TRT_INFERENCE_DATA_HANDLER_H
 #define TRT_INFERENCE_DATA_HANDLER_H
 
-#include <map>
-#include <fstream>
-#include <vector>
-#include <opencv2/core/types.hpp>
+#include "interfaces.h"
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
-#include "interfaces.h"
+#include <fstream>
+#include <map>
+#include <opencv2/core/types.hpp>
+#include <vector>
 
 class DataHandling : public IDataBase {
 public:
@@ -19,7 +19,7 @@ public:
 
   bool loadConfig() override;
 
-  bool loadDetectionLabels() override ;
+  bool loadDetectionLabels() override;
 
   bool setConfigPath(std::string path) override;
 
@@ -29,7 +29,7 @@ public:
 
   std::string getConfigInputNode() override;
 
-  std::string getConfigOutputNode() override;
+  std::vector<std::string> getConfigOutputNodes() override;
 
   std::string getConfigEnginePath() override;
 
@@ -43,7 +43,8 @@ public:
 
   bool setConfigInputNode(const std::string &input_node) override;
 
-  bool setConfigOutputNode(const std::string &output_node) override;
+  bool
+  setConfigOutputNodes(const std::vector<std::string> &output_node) override;
 
   bool setConfigEnginePath(const std::string &engine_path) override;
 

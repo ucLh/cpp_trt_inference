@@ -4,48 +4,76 @@
 
 TRTDetectionInferencer::TRTDetectionInferencer() {
   m_data_handler = std::make_unique<DataHandling>();
-  m_data_handler->loadDetectionLabels();
-  m_detection_labels = m_data_handler->getDetectionLabels();
   m_norm_type = NormalizeType::DETECTION_YOLOV4;
   m_bgr2rgb = true;
 }
 
-string TRTDetectionInferencer::inference(const std::vector<cv::Mat> &imgs) {
+bool TRTDetectionInferencer::prepareForInference(
+    const DataHandling::ConfigData &config) {
+  m_data_handler->setConfig(config);
+  processConfig();
 
-#ifdef TRT_DEBUG
-  m_frames.clear();
-  m_bb_frames.clear();
-
-  for (auto fr : imgs) {
-    cv::Mat t;
-    fr.copyTo(t);
-    m_frames.push_back(t);
+  if (m_ready_for_inference) {
+    std::cerr << "Warning! You are preparing for inference multiple times"
+              << "\n";
   }
-#endif
+  m_ready_for_inference = true;
+  return true;
+}
 
+bool TRTDetectionInferencer::processConfig() {
+  setInputNodeName(m_data_handler->getConfigInputNode());
+  setOutputNodeNames({m_data_handler->getConfigOutputNodes()});
+
+  m_rows = m_data_handler->getConfigInputSize().height;
+  m_cols = m_data_handler->getConfigInputSize().width;
+  m_input_shape = {m_rows, m_cols, 3};
+
+  m_data_handler->loadDetectionLabels();
+  m_detection_labels = m_data_handler->getDetectionLabels();
+
+  TRTCNNInferencer::loadFromCudaEngine(m_data_handler->getConfigEnginePath());
+}
+
+string TRTDetectionInferencer::inference(const std::vector<cv::Mat> &imgs) {
+  if (!m_ready_for_inference) {
+    m_last_error = "You need to call prepareForInference first!";
+    return m_last_error;
+  }
   std::string status = TRTCNNInferencer::inference(imgs);
 
-  if (status.size() > 2) {
-    return status;
-  }
-
   bool ok = processOutput(*m_buffers);
+  m_inference_completed = true;
+  m_new_inference_happend = true;
 
   if (!ok) {
     return m_last_error;
   }
 
-  return "OK";
+  return status;
 }
 
-#ifdef TRT_DEBUG
-std::vector<cv::Mat>
-TRTDetectionInferencer::getFramesWithBoundingBoxes(float tresh) {
-  if (tresh == 0.0f) {
-    tresh = m_thresh;
+//#ifdef TRT_DEBUG
+std::vector<cv::Mat> TRTDetectionInferencer::getFramesWithBoundingBoxes(
+    const std::vector<cv::Mat> &imgs) {
+  if (!m_inference_completed) {
+    std::cerr << "You need to call inference() first!";
+    exit(1);
   }
 
-  if (m_bb_frames.size()) {
+  if (m_new_inference_happend) {
+    m_frames.clear();
+    m_bb_frames.clear();
+
+    for (auto fr : imgs) {
+      cv::Mat t;
+      fr.copyTo(t);
+      m_frames.push_back(t);
+    }
+    m_new_inference_happend = false;
+  }
+
+  if (!m_bb_frames.empty()) {
     return m_bb_frames;
   }
 
@@ -55,7 +83,7 @@ TRTDetectionInferencer::getFramesWithBoundingBoxes(float tresh) {
 
     for (short j = 0; j < m_boxes[i].size(); ++j) {
 
-      if (m_scores[i][j] < tresh)
+      if (m_scores[i][j] < m_thresh)
         continue;
 
       const int x = m_boxes[i][j].tl().x * (float)frame.cols;
@@ -84,12 +112,10 @@ TRTDetectionInferencer::getFramesWithBoundingBoxes(float tresh) {
 
   return m_bb_frames;
 }
-#endif
+//#endif
 
 bool TRTDetectionInferencer::processOutput(
     const samplesCommon::BufferManager &buffers) {
-  //    float *hostDataBuffer =
-  //        static_cast<float *>(buffers.getHostBuffer(m_output_node_names[0]));
   auto *num_detections =
       static_cast<int *>(buffers.getHostBuffer(m_output_node_names[0]));
   auto *nms_boxes =
@@ -146,17 +172,33 @@ bool TRTDetectionInferencer::processOutput(
 }
 
 std::vector<std::vector<int>> TRTDetectionInferencer::getClasses() const {
+  if (!m_inference_completed) {
+    std::cerr << "You need to call inference() first!";
+    exit(1);
+  }
   return m_classes;
 }
 
 std::vector<std::vector<float>> TRTDetectionInferencer::getScores() const {
+  if (!m_inference_completed) {
+    std::cerr << "You need to call inference() first!";
+    exit(1);
+  }
   return m_scores;
 }
 
 std::vector<std::vector<cv::Rect2f>> TRTDetectionInferencer::getBoxes() const {
+  if (!m_inference_completed) {
+    std::cerr << "You need to call inference() first!";
+    exit(1);
+  }
   return m_boxes;
 }
 
 float TRTDetectionInferencer::getThresh() const { return m_thresh; }
 
 void TRTDetectionInferencer::setThresh(float thresh) { m_thresh = thresh; }
+
+std::string TRTDetectionInferencer::getLastError() const {
+  return TRTCNNInferencer::getLastError();
+}

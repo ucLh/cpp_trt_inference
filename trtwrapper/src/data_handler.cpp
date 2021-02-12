@@ -38,11 +38,14 @@ bool DataHandling::loadConfig() {
     if (doc.IsObject()) {
       rapidjson::Value &input_size = doc["input_size"];
       rapidjson::Value &input_node = doc["input_node"];
-      rapidjson::Value &output_node = doc["output_node"];
+      rapidjson::Value &output_node = doc["output_nodes"];
       rapidjson::Value &engine_path = doc["engine_path"];
 
       m_config.input_node = input_node.GetString();
-      m_config.output_node = output_node.GetString();
+      for (const auto &node : output_node.GetArray()) {
+        auto node_str = node.GetString();
+        m_config.output_nodes.emplace_back(node_str);
+      }
       m_config.engine_path = engine_path.GetString();
       m_config.input_size.height = input_size.GetArray()[0].GetInt();
       m_config.input_size.width = input_size.GetArray()[1].GetInt();
@@ -99,7 +102,9 @@ cv::Size DataHandling::getConfigInputSize() { return m_config.input_size; }
 
 std::string DataHandling::getConfigInputNode() { return m_config.input_node; }
 
-std::string DataHandling::getConfigOutputNode() { return m_config.output_node; }
+std::vector<std::string> DataHandling::getConfigOutputNodes() {
+  return m_config.output_nodes;
+}
 
 std::string DataHandling::getConfigEnginePath() { return m_config.engine_path; }
 
@@ -121,8 +126,9 @@ bool DataHandling::setConfigInputNode(const std::string &input_node) {
   return true;
 }
 
-bool DataHandling::setConfigOutputNode(const std::string &output_node) {
-  m_config.output_node = output_node;
+bool DataHandling::setConfigOutputNodes(
+    const std::vector<std::string> &output_nodes) {
+  m_config.output_nodes = output_nodes;
   return true;
 }
 

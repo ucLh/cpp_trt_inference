@@ -9,36 +9,40 @@
 #include "trt_cnn_inferencer.h"
 
 ///
-/// \brief The TRTDetectionInferencer class for Tensorflow Object Detection API
+/// \brief The TRTDetectionInferencer class inferencing detection networks
 ///
-class TRTDetectionInferencer : public TRTCNNInferencer {
+class TRTDetectionInferencer : public virtual TRTCNNInferencer,
+                               public virtual IDetectionInferenceHandler {
 public:
   TRTDetectionInferencer();
 
   TRTDetectionInferencer(TRTDetectionInferencer &&that);
-  virtual ~TRTDetectionInferencer() = default;
+  ~TRTDetectionInferencer() override = default;
 
-  virtual std::string inference(const std::vector<cv::Mat> &imgs);
+  bool prepareForInference(const IDataBase::ConfigData &config) override;
+  std::string inference(const std::vector<cv::Mat> &imgs) override;
+  std::string getLastError() const override;
 
-#ifdef TRT_DEBUG
+  //#ifdef TRT_DEBUG
   ///
-  /// \brief getFramesWithBoundingBoxes Debug visualization high-level method
+  /// \brief getFramesWithBoundingBoxes. Debug visualization high-level method
   /// \param tresh
   /// \return Image with drawn bounding boxes
   ///
-  std::vector<cv::Mat> getFramesWithBoundingBoxes(float tresh = 0.0f);
-#endif
+  std::vector<cv::Mat>
+  getFramesWithBoundingBoxes(const std::vector<cv::Mat> &imgs) override;
+  //#endif
 
-  float getThresh() const;
-  void setThresh(float thresh);
+  std::vector<std::vector<cv::Rect2f>> getBoxes() const override;
+  std::vector<std::vector<float>> getScores() const override;
+  std::vector<std::vector<int>> getClasses() const override;
 
-  // Access themm after inference done
-  std::vector<std::vector<cv::Rect2f>> getBoxes() const;
-  std::vector<std::vector<float>> getScores() const;
-  std::vector<std::vector<int>> getClasses() const;
+  float getThresh() const override;
+  void setThresh(float thresh) override;
 
 protected:
-  bool processOutput(const samplesCommon::BufferManager &buffers);
+  bool processConfig();
+  bool processOutput(const samplesCommon::BufferManager &buffers) override;
   template <class T>
   bool checkBufferExtraction(T const &buffer, int output_node_name_index) {
     if (!buffer) {
@@ -49,10 +53,16 @@ protected:
     return true;
   }
 
+  bool m_ready_for_inference = false;
+  bool m_inference_completed = false;
+  bool m_new_inference_happend;
+
   std::unique_ptr<IDataBase> m_data_handler;
+  int m_rows;
+  int m_cols;
   std::vector<std::string> m_detection_labels;
 
-//  size_t m_layout_size = 7;
+  //  size_t m_layout_size = 7;
   float m_thresh = 0.4;
 
   std::vector<std::vector<cv::Rect2f>> m_boxes;

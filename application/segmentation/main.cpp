@@ -15,13 +15,13 @@ int main() {
 
   // Prepare wrapper for inference. You have to either give a path to the config
   // or manually initialize all the fields.
-  // seg_wrapper.prepareForInference("config.json");
-  seg_wrapper.prepareForInference(
-      640, 1280,
-      "/home/luch/Programming/Python/TMK/ckpt/autovis/"
-      "effnetb0_unet_gray_2grass_iou55_640x1280_argmax.bin",
-      "/home/luch/Programming/C++/cpp_trt_inference/classes.csv", "input_0",
-      "output_0");
+   seg_wrapper.prepareForInference("config.json");
+//  seg_wrapper.prepareForInference(
+//      640, 1280,
+//      "/home/luch/Programming/Python/TMK/ckpt/autovis/"
+//      "effnetb0_unet_gray_2grass_iou55_640x1280_argmax.bin",
+//      "/home/luch/Programming/C++/cpp_trt_inference/classes.csv", "input_0",
+//      "output_0");
 
   // Check if network loaded.
   std::cerr << "Status of load: " << seg_wrapper.getLastError() << std::endl;
