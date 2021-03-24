@@ -31,6 +31,7 @@ bool TRTDetectionInferencer::processConfig() {
 
   m_data_handler->loadDetectionLabels();
   m_detection_labels = m_data_handler->getDetectionLabels();
+  m_categories_thresholds = m_data_handler->getConfigCategoriesThresholds();
 
   TRTCNNInferencer::loadFromCudaEngine(m_data_handler->getConfigEnginePath());
 }
@@ -152,7 +153,7 @@ bool TRTDetectionInferencer::processOutput(
     for (size_t index = 0; index < number_of_detections; ++index) {
       const int cl_index = nms_classes[index];
       const float score = nms_scores[index];
-      const int final_cl_index = postprocessOutput(cl_index, score);
+      const int final_cl_index = postprocessOutput(cl_index, score, m_categories_thresholds);
 
       const float xmin = nms_boxes[4 * index];
       const float ymin = nms_boxes[4 * index + 1];
@@ -189,17 +190,17 @@ int TRTDetectionInferencer::remapClassIndex(int cl_index) {
   return final_cl_index;
 }
 
-bool TRTDetectionInferencer::filterScore(int cl_index, float score, const std::vector<float> &tresholds) {
-  return score > tresholds[cl_index];
+bool TRTDetectionInferencer::filterScore(int cl_index, float score, const std::vector<float> &thresholds) {
+  return score > thresholds[cl_index];
 }
 
 int TRTDetectionInferencer::postprocessOutput(int cl_index, float score,
-                                              const std::vector<float> &tresholds) {
+                                              const std::vector<float> &thresholds) {
   /// Applies remapping and class-specific score filtering.
   /// returns: new class index after remapping if the filtering is passed,
   /// '-1' otherwise.
   int new_cl_index = remapClassIndex(cl_index);
-  bool keep = filterScore(new_cl_index, score, tresholds);
+  bool keep = filterScore(new_cl_index, score, thresholds);
   if (keep) {
     return new_cl_index;
   } else {

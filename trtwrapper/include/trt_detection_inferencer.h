@@ -71,6 +71,7 @@ protected:
 
   //  size_t m_layout_size = 7;
   float m_thresh = 0.4;
+  std::vector<float> m_categories_thresholds;
 
   std::vector<std::vector<cv::Rect2f>> m_boxes;
   std::vector<std::vector<float>> m_scores;

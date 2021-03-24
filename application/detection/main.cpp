@@ -20,7 +20,8 @@ int main() {
         "/home/luch/Programming/C++/cpp_trt_inference/"
         "labels_for_remap.csv",
         "input",
-        {"nms_num_detections", "nms_boxes", "nms_scores", "nms_classes"});
+        {"nms_num_detections", "nms_boxes", "nms_scores", "nms_classes"},
+        {0.3, 0.1, 0.1, 0.2, 0.3});
 
     std::cerr << "Status of load: " << det_wrapper.getLastError() << std::endl;
 

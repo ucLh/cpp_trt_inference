@@ -19,6 +19,22 @@ std::string DataHandling::tryParseJsonMember(rapidjson::Document &doc,
     return default_val;
   }
 }
+template <class T>
+std::vector<float> tryParseJsonArray(rapidjson::Document &doc,
+                                          const std::string &name,
+                                          const std::vector<T> &default_val = {}) {
+  if (doc.HasMember(name.c_str())) {
+    rapidjson::Value &value = doc[name.c_str()];
+    auto generic_array = value.GetArray();
+    std::vector<T> result_array;
+    for (rapidjson::SizeType i = 0; i < generic_array.Size(); i++) {
+      result_array.emplace_back(generic_array[i].Get<T>());
+    }
+    return result_array;
+  } else {
+    return default_val;
+  }
+}
 
 bool DataHandling::loadConfig() {
 
@@ -116,6 +132,10 @@ std::vector<std::string> DataHandling::getDetectionLabels() {
   return m_detection_labels;
 }
 
+std::vector<float> DataHandling::getConfigCategoriesThresholds() {
+  return m_config.categories_thresholds;
+}
+
 bool DataHandling::setConfigInputSize(const cv::Size &size) {
   m_config.input_size = size;
   return true;
@@ -139,5 +159,10 @@ bool DataHandling::setConfigEnginePath(const std::string &embed_pb_path) {
 
 bool DataHandling::setConfigColorsPath(const std::string &colors_path) {
   m_config.colors_path = colors_path;
+  return true;
+}
+
+bool DataHandling::setConfigCategoriesThresholds(const std::vector<float> &categories_thresholds) {
+  m_config.categories_thresholds = categories_thresholds;
   return true;
 }

@@ -39,6 +39,8 @@ public:
 
   std::vector<std::string> getDetectionLabels() override;
 
+  std::vector<float> getConfigCategoriesThresholds() override;
+
   bool setConfigInputSize(const cv::Size &size) override;
 
   bool setConfigInputNode(const std::string &input_node) override;
@@ -49,6 +51,8 @@ public:
   bool setConfigEnginePath(const std::string &engine_path) override;
 
   bool setConfigColorsPath(const std::string &colors_path) override;
+
+  bool setConfigCategoriesThresholds(const std::vector<float> &categories_thresholds) override;
 
 protected:
   std::string m_config_path = "config.json";

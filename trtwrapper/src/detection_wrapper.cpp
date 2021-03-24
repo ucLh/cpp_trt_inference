@@ -7,7 +7,8 @@ DetectionWrapper::DetectionWrapper() {
 
 bool DetectionWrapper::prepareForInference(
     int height, int width, std::string engine_path, std::string labels_path,
-    std::string input_node, std::vector<std::string> output_node) {
+    std::string input_node, std::vector<std::string> output_node,
+    std::vector<float> categories_thresholds) {
   IDataBase::ConfigData config;
   config.input_size.height = height;
   config.input_size.width = width;
@@ -15,6 +16,7 @@ bool DetectionWrapper::prepareForInference(
   config.detection_labels_path = std::move(labels_path);
   config.input_node = std::move(input_node);
   config.output_nodes = std::move(output_node);
+  config.categories_thresholds = std::move(categories_thresholds);
   return m_inference_handler->prepareForInference(config);
 }
 
