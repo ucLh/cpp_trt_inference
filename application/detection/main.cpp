@@ -10,21 +10,22 @@ int main() {
   /// Legacy TensortRT. Just for checking that we didn't break anything
   {
     cv::Mat img = cv::imread(
-        "/home/luch/Programming/C++/cpp_trt_inference/test_data/images/14.png");
+        "/home/luch/Programming/C++/cpp_trt_inference/test_data/images/14_gray.png");
 
     DetectionWrapper det_wrapper;
     det_wrapper.prepareForInference(
         608, 608,
         "/home/luch/Programming/C++/cpp_trt_inference/"
-        "test_data/yolov4_static_nms.bin",
+        "test_data/yolov4_static_nms_gray.bin",
         "/home/luch/Programming/C++/cpp_trt_inference/"
-        "detection_label_names.csv",
+        "labels_for_remap.csv",
         "input",
         {"nms_num_detections", "nms_boxes", "nms_scores", "nms_classes"});
 
     std::cerr << "Status of load: " << det_wrapper.getLastError() << std::endl;
 
-    det_wrapper.inference({img});
+    det_wrapper.inference({img}, true);
+    det_wrapper.setThresh(0.1);
     std::cerr << "Status of inference: " << det_wrapper.getLastError()
               << std::endl;
     std::cout << "Size:  "

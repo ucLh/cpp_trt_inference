@@ -35,7 +35,8 @@ bool TRTDetectionInferencer::processConfig() {
   TRTCNNInferencer::loadFromCudaEngine(m_data_handler->getConfigEnginePath());
 }
 
-string TRTDetectionInferencer::inference(const std::vector<cv::Mat> &imgs) {
+string TRTDetectionInferencer::inference(const std::vector<cv::Mat> &imgs,
+                                         bool apply_postprocessing) {
   if (!m_ready_for_inference) {
     m_last_error = "You need to call prepareForInference first!";
     return m_last_error;
@@ -65,7 +66,7 @@ std::vector<cv::Mat> TRTDetectionInferencer::getFramesWithBoundingBoxes(
     m_frames.clear();
     m_bb_frames.clear();
 
-    for (auto fr : imgs) {
+    for (const auto &fr : imgs) {
       cv::Mat t;
       fr.copyTo(t);
       m_frames.push_back(t);
@@ -148,27 +149,62 @@ bool TRTDetectionInferencer::processOutput(
   const size_t number_of_detections = *num_detections;
   for (size_t example_num = 0; example_num < m_batch_size; ++example_num) {
 
-    m_boxes[example_num].resize(number_of_detections);
-    m_scores[example_num].resize(number_of_detections);
-    m_classes[example_num].resize(number_of_detections);
-
     for (size_t index = 0; index < number_of_detections; ++index) {
       const int cl_index = nms_classes[index];
       const float score = nms_scores[index];
+      const int final_cl_index = postprocessOutput(cl_index, score);
 
       const float xmin = nms_boxes[4 * index];
       const float ymin = nms_boxes[4 * index + 1];
       const float xmax = nms_boxes[4 * index + 2];
       const float ymax = nms_boxes[4 * index + 3];
 
-      m_boxes[example_num][index] =
-          cv::Rect2f(xmin, ymin, xmax - xmin, ymax - ymin);
-      m_scores[example_num][index] = score;
-      m_classes[example_num][index] = cl_index;
+      if (final_cl_index != -1) {
+        m_boxes[example_num].emplace_back(
+            cv::Rect2f(xmin, ymin, xmax - xmin, ymax - ymin));
+        m_scores[example_num].emplace_back(score);
+        m_classes[example_num].emplace_back(final_cl_index);
+      }
     }
   }
 
   return true;
+}
+
+int TRTDetectionInferencer::remapClassIndex(int cl_index) {
+  int final_cl_index = cl_index;
+  if ((1 <= cl_index) && (cl_index < 9)) {
+    // Vehicles
+    final_cl_index = 1;
+  } else if ((14 <= cl_index) && (cl_index < 24)) {
+    // Animals
+    final_cl_index = 2;
+  } else if (cl_index == 32) {
+    // Sport ball
+    final_cl_index = 3;
+  } else if (cl_index != 0) {
+    // Other, not person
+    final_cl_index = 4;
+  }
+  return final_cl_index;
+}
+
+bool TRTDetectionInferencer::filterScore(int cl_index, float score, const std::vector<float> &tresholds) {
+  return score > tresholds[cl_index];
+}
+
+int TRTDetectionInferencer::postprocessOutput(int cl_index, float score,
+                                              const std::vector<float> &tresholds) {
+  /// Applies remapping and class-specific score filtering.
+  /// returns: new class index after remapping if the filtering is passed,
+  /// '-1' otherwise.
+  int new_cl_index = remapClassIndex(cl_index);
+  bool keep = filterScore(new_cl_index, score, tresholds);
+  if (keep) {
+    return new_cl_index;
+  } else {
+    return -1;
+  }
 }
 
 std::vector<std::vector<int>> TRTDetectionInferencer::getClasses() const {

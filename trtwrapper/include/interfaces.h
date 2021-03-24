@@ -53,8 +53,6 @@ public:
 
 class IInferenceHandler {
 public:
-  virtual std::string inference(const std::vector<cv::Mat> &imgs) = 0;
-
   virtual std::string getLastError() const = 0;
 };
 
@@ -63,6 +61,8 @@ public:
   virtual bool prepareForInference(const std::string &config_path) = 0;
 
   virtual bool prepareForInference(const IDataBase::ConfigData &config) = 0;
+
+  virtual std::string inference(const std::vector<cv::Mat> &imgs) = 0;
 
   virtual std::string makeIndexMask(int pixel_sky_border) = 0;
 
@@ -81,6 +81,9 @@ public:
 class IDetectionInferenceHandler : public IInferenceHandler {
 public:
   virtual bool prepareForInference(const IDataBase::ConfigData &config) = 0;
+
+  virtual std::string inference(const std::vector<cv::Mat> &imgs,
+                                bool apply_postprocessing) = 0;
 
   virtual void setThresh(float thresh) = 0;
 

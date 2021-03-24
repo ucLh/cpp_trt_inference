@@ -10,13 +10,14 @@ public:
 
   ~DetectionWrapper() = default;
 
-//  bool prepareForInference(const std::string &config_path);
+  //  bool prepareForInference(const std::string &config_path);
 
   bool prepareForInference(int height, int width, std::string engine_path,
                            std::string labels_path, std::string input_node,
                            std::vector<std::string> output_nodes);
 
-  bool inference(const std::vector<cv::Mat> &imgs);
+  bool inference(const std::vector<cv::Mat> &imgs,
+                 bool apply_postprocessing = false);
 
   std::string getLastError() const;
 

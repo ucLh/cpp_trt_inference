@@ -18,8 +18,9 @@ bool DetectionWrapper::prepareForInference(
   return m_inference_handler->prepareForInference(config);
 }
 
-bool DetectionWrapper::inference(const std::vector<cv::Mat> &imgs) {
-  std::string status = m_inference_handler->inference(imgs);
+bool DetectionWrapper::inference(const std::vector<cv::Mat> &imgs,
+                                 bool apply_postprocessing) {
+  std::string status = m_inference_handler->inference(imgs, apply_postprocessing);
   // TODO: Refactor bad legacy
   return status == "OK";
 }
@@ -45,7 +46,9 @@ std::vector<std::vector<int>> DetectionWrapper::getClasses() const {
   return m_inference_handler->getClasses();
 }
 
-float DetectionWrapper::getThresh() const { m_inference_handler->getThresh(); }
+float DetectionWrapper::getThresh() const {
+  return m_inference_handler->getThresh();
+}
 
 void DetectionWrapper::setThresh(float thresh) {
   m_inference_handler->setThresh(thresh);

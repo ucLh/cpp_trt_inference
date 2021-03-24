@@ -20,7 +20,8 @@ public:
   ~TRTDetectionInferencer() override = default;
 
   bool prepareForInference(const IDataBase::ConfigData &config) override;
-  std::string inference(const std::vector<cv::Mat> &imgs) override;
+  std::string inference(const std::vector<cv::Mat> &imgs,
+                        bool apply_postprocessing) override;
   std::string getLastError() const override;
 
   //#ifdef TRT_DEBUG
@@ -43,6 +44,12 @@ public:
 protected:
   bool processConfig();
   bool processOutput(const samplesCommon::BufferManager &buffers) override;
+  int postprocessOutput(int cl_index, float score,
+                        const std::vector<float> &tresholds = {0.2, 0.1, 0.1,
+                                                               0.2, 0.3});
+  static int remapClassIndex(int cl_index);
+  static bool filterScore(int cl_index, float score,
+                          const vector<float> &tresholds);
   template <class T>
   bool checkBufferExtraction(T const &buffer, int output_node_name_index) {
     if (!buffer) {
