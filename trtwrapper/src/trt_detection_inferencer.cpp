@@ -200,6 +200,10 @@ int TRTDetectionInferencer::postprocessOutput(int cl_index, float score,
   /// returns: new class index after remapping if the filtering is passed,
   /// '-1' otherwise.
   int new_cl_index = remapClassIndex(cl_index);
+  // No thresholds were given, don't apply filtering
+  if (thresholds.empty()) {
+    return new_cl_index;
+  }
   bool keep = filterScore(new_cl_index, score, thresholds);
   if (keep) {
     return new_cl_index;

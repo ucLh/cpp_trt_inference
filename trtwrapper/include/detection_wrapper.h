@@ -15,7 +15,7 @@ public:
   bool prepareForInference(int height, int width, std::string engine_path,
                            std::string labels_path, std::string input_node,
                            std::vector<std::string> output_nodes,
-                           std::vector<float> categories_thresholds);
+                           std::vector<float> categories_thresholds = {});
 
   bool inference(const std::vector<cv::Mat> &imgs,
                  bool apply_postprocessing = false);
