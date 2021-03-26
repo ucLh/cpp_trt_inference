@@ -10,7 +10,7 @@ int main() {
   /// Legacy TensortRT. Just for checking that we didn't break anything
   {
     cv::Mat img = cv::imread(
-        "/home/luch/Programming/C++/cpp_trt_inference/test_data/images/14_gray.png");
+        "/home/luch/Programming/C++/cpp_trt_inference/test_data/images/frame_00049.png");
 
     DetectionWrapper det_wrapper;
     det_wrapper.prepareForInference(
@@ -21,7 +21,8 @@ int main() {
         "labels_for_remap.csv",
         "input",
         {"nms_num_detections", "nms_boxes", "nms_scores", "nms_classes"},
-        {0.2, 0.1, 0.1, 0.2, 0.3});
+        false,
+        {0.2, 0.1, 0.1, 0.2, 0.1});
 
     std::cerr << "Status of load: " << det_wrapper.getLastError() << std::endl;
 

@@ -62,6 +62,7 @@ protected:
   bool m_ready_for_inference = false;
   bool m_inference_completed = false;
   bool m_new_inference_happend;
+  bool m_show_object_class;
 
   std::unique_ptr<IDataBase> m_data_handler;
   int m_rows;

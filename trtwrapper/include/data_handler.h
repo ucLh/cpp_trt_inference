@@ -41,6 +41,8 @@ public:
 
   std::vector<float> getConfigCategoriesThresholds() override;
 
+  bool getConfigShowObjectClass() override;
+
   bool setConfigInputSize(const cv::Size &size) override;
 
   bool setConfigInputNode(const std::string &input_node) override;
@@ -52,7 +54,10 @@ public:
 
   bool setConfigColorsPath(const std::string &colors_path) override;
 
-  bool setConfigCategoriesThresholds(const std::vector<float> &categories_thresholds) override;
+  bool setConfigCategoriesThresholds(
+      const std::vector<float> &categories_thresholds) override;
+
+  bool setConfigShowObjectClass(bool show_object_class) override;
 
 protected:
   std::string m_config_path = "config.json";

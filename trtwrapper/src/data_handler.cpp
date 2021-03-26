@@ -136,6 +136,10 @@ std::vector<float> DataHandling::getConfigCategoriesThresholds() {
   return m_config.categories_thresholds;
 }
 
+bool DataHandling::getConfigShowObjectClass() {
+  return m_config.show_object_class;
+}
+
 bool DataHandling::setConfigInputSize(const cv::Size &size) {
   m_config.input_size = size;
   return true;
@@ -164,5 +168,10 @@ bool DataHandling::setConfigColorsPath(const std::string &colors_path) {
 
 bool DataHandling::setConfigCategoriesThresholds(const std::vector<float> &categories_thresholds) {
   m_config.categories_thresholds = categories_thresholds;
+  return true;
+}
+
+bool DataHandling::setConfigShowObjectClass(bool show_object_class) {
+  m_config.show_object_class = show_object_class;
   return true;
 }

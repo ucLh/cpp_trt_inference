@@ -29,12 +29,16 @@ bool TRTDetectionInferencer::processConfig() {
   m_cols = m_data_handler->getConfigInputSize().width;
   m_input_shape = {m_rows, m_cols, 3};
 
+  m_show_object_class = m_data_handler->getConfigShowObjectClass();
+
   m_data_handler->loadDetectionLabels();
   m_detection_labels = m_data_handler->getDetectionLabels();
   m_categories_thresholds = m_data_handler->getConfigCategoriesThresholds();
-  assert(m_detection_labels.size() == m_categories_thresholds.size() &&
-         "The number of thresholds must be equal to the number of labels for "
-         "detection");
+  if (!m_categories_thresholds.empty()) {
+    assert(m_detection_labels.size() == m_categories_thresholds.size() &&
+           "The number of thresholds must be equal to the number of labels for "
+           "detection");
+  }
 
   TRTCNNInferencer::loadFromCudaEngine(m_data_handler->getConfigEnginePath());
 }
@@ -87,8 +91,13 @@ std::vector<cv::Mat> TRTDetectionInferencer::getFramesWithBoundingBoxes(
 
     for (short j = 0; j < m_boxes[i].size(); ++j) {
 
-      if (m_scores[i][j] < m_thresh)
+      if (m_scores[i][j] < m_thresh) {
         continue;
+      }
+      // Check for 'object' class, if m_show_object_class is false, continue
+      if ((m_classes[i][j] == m_detection_labels.size() - 1) && (!m_show_object_class)) {
+        continue;
+      }
 
       const int x = m_boxes[i][j].tl().x * (float)frame.cols;
       const int y = m_boxes[i][j].tl().y * (float)frame.rows;

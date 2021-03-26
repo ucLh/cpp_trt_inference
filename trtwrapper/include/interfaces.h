@@ -14,6 +14,7 @@ public:
     std::string colors_path;
     std::string detection_labels_path;
     std::vector<float> categories_thresholds;
+    bool show_object_class;
   };
 
   virtual bool setConfigPath(std::string path) = 0;
@@ -42,6 +43,8 @@ public:
 
   virtual std::vector<float> getConfigCategoriesThresholds() = 0;
 
+  virtual bool getConfigShowObjectClass() = 0;
+
   virtual bool setConfigInputSize(const cv::Size &size) = 0;
 
   virtual bool setConfigInputNode(const std::string &input_node) = 0;
@@ -54,6 +57,8 @@ public:
   virtual bool setConfigColorsPath(const std::string &colors_path) = 0;
 
   virtual bool setConfigCategoriesThresholds(const std::vector<float> &categories_thresholds) = 0;
+
+  virtual bool setConfigShowObjectClass(bool show_object_class) = 0;
 };
 
 class IInferenceHandler {
