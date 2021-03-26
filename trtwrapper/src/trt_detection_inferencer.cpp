@@ -32,6 +32,9 @@ bool TRTDetectionInferencer::processConfig() {
   m_data_handler->loadDetectionLabels();
   m_detection_labels = m_data_handler->getDetectionLabels();
   m_categories_thresholds = m_data_handler->getConfigCategoriesThresholds();
+  assert(m_detection_labels.size() == m_categories_thresholds.size() &&
+         "The number of thresholds must be equal to the number of labels for "
+         "detection");
 
   TRTCNNInferencer::loadFromCudaEngine(m_data_handler->getConfigEnginePath());
 }
