@@ -17,8 +17,7 @@ public:
                            std::vector<std::string> output_nodes,
                            std::vector<float> categories_thresholds = {});
 
-  bool inference(const std::vector<cv::Mat> &imgs,
-                 bool apply_postprocessing = false);
+  bool inference(const std::vector<cv::Mat> &imgs);
 
   std::string getLastError() const;
 

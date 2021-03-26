@@ -20,8 +20,7 @@ public:
   ~TRTDetectionInferencer() override = default;
 
   bool prepareForInference(const IDataBase::ConfigData &config) override;
-  std::string inference(const std::vector<cv::Mat> &imgs,
-                        bool apply_postprocessing) override;
+  std::string inference(const std::vector<cv::Mat> &imgs) override;
   std::string getLastError() const override;
 
   //#ifdef TRT_DEBUG
@@ -70,7 +69,7 @@ protected:
   std::vector<std::string> m_detection_labels;
 
   //  size_t m_layout_size = 7;
-  float m_thresh = 0.4;
+  float m_thresh = 0.1;
   std::vector<float> m_categories_thresholds;
 
   std::vector<std::vector<cv::Rect2f>> m_boxes;

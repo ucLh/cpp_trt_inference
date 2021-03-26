@@ -25,8 +25,7 @@ int main() {
 
     std::cerr << "Status of load: " << det_wrapper.getLastError() << std::endl;
 
-    det_wrapper.inference({img}, true);
-    det_wrapper.setThresh(0.1);
+    det_wrapper.inference({img});
     std::cerr << "Status of inference: " << det_wrapper.getLastError()
               << std::endl;
     std::cout << "Size:  "

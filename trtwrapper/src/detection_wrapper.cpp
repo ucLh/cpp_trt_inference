@@ -20,9 +20,8 @@ bool DetectionWrapper::prepareForInference(
   return m_inference_handler->prepareForInference(config);
 }
 
-bool DetectionWrapper::inference(const std::vector<cv::Mat> &imgs,
-                                 bool apply_postprocessing) {
-  std::string status = m_inference_handler->inference(imgs, apply_postprocessing);
+bool DetectionWrapper::inference(const std::vector<cv::Mat> &imgs) {
+  std::string status = m_inference_handler->inference(imgs);
   // TODO: Refactor bad legacy
   return status == "OK";
 }

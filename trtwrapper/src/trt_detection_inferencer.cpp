@@ -36,8 +36,7 @@ bool TRTDetectionInferencer::processConfig() {
   TRTCNNInferencer::loadFromCudaEngine(m_data_handler->getConfigEnginePath());
 }
 
-string TRTDetectionInferencer::inference(const std::vector<cv::Mat> &imgs,
-                                         bool apply_postprocessing) {
+string TRTDetectionInferencer::inference(const std::vector<cv::Mat> &imgs) {
   if (!m_ready_for_inference) {
     m_last_error = "You need to call prepareForInference first!";
     return m_last_error;
