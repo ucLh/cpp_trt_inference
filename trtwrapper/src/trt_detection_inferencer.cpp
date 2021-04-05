@@ -95,7 +95,8 @@ std::vector<cv::Mat> TRTDetectionInferencer::getFramesWithBoundingBoxes(
         continue;
       }
       // Check for 'object' class, if m_show_object_class is false, continue
-      if ((m_classes[i][j] == m_detection_labels.size() - 1) && (!m_show_object_class)) {
+      if ((m_classes[i][j] == m_detection_labels.size() - 1) &&
+          (!m_show_object_class)) {
         continue;
       }
 
@@ -164,7 +165,8 @@ bool TRTDetectionInferencer::processOutput(
     for (size_t index = 0; index < number_of_detections; ++index) {
       const int cl_index = nms_classes[index];
       const float score = nms_scores[index];
-      const int final_cl_index = postprocessOutput(cl_index, score, m_categories_thresholds);
+      const int final_cl_index =
+          postprocessOutput(cl_index, score, m_categories_thresholds);
 
       const float xmin = nms_boxes[4 * index];
       const float ymin = nms_boxes[4 * index + 1];
@@ -188,12 +190,12 @@ int TRTDetectionInferencer::remapClassIndex(int cl_index) {
   if ((1 <= cl_index) && (cl_index < 9)) {
     // Vehicles
     final_cl_index = 1;
+  } else if ((9 <= cl_index) && (cl_index < 14)) {
+    // Pillar
+    final_cl_index = 3;
   } else if ((14 <= cl_index) && (cl_index < 24)) {
     // Animals
     final_cl_index = 2;
-  } else if (cl_index == 32) {
-    // Sport ball
-    final_cl_index = 3;
   } else if (cl_index != 0) {
     // Other, not person
     final_cl_index = 4;
@@ -201,12 +203,13 @@ int TRTDetectionInferencer::remapClassIndex(int cl_index) {
   return final_cl_index;
 }
 
-bool TRTDetectionInferencer::filterScore(int cl_index, float score, const std::vector<float> &thresholds) {
+bool TRTDetectionInferencer::filterScore(int cl_index, float score,
+                                         const std::vector<float> &thresholds) {
   return score > thresholds[cl_index];
 }
 
-int TRTDetectionInferencer::postprocessOutput(int cl_index, float score,
-                                              const std::vector<float> &thresholds) {
+int TRTDetectionInferencer::postprocessOutput(
+    int cl_index, float score, const std::vector<float> &thresholds) {
   /// Applies remapping and class-specific score filtering.
   /// returns: new class index after remapping if the filtering is passed,
   /// '-1' otherwise.
