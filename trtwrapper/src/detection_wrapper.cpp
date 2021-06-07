@@ -1,6 +1,6 @@
 #include "detection_wrapper.h"
-#include "trt_effdet_inferencer.h"
-#include "trt_yolo_inferencer.h"
+#include "detection_inference/trt_effdet_inferencer.h"
+#include "detection_inference/trt_yolo_inferencer.h"
 
 DetectionWrapper::DetectionWrapper(DetectionInferencerType type) {
   if (type == DetectionInferencerType::YOLO) {

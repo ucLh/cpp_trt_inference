@@ -1,4 +1,4 @@
-#include "trt_yolo_inferencer.h"
+#include "detection_inference/trt_yolo_inferencer.h"
 
 cv::Rect2f TRTYoloInferencer::processBox(float xmin, float ymin, float xmax,
                                          float ymax, int index) {

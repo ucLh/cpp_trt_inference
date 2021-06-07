@@ -1,4 +1,4 @@
-#include "trt_detection_inferencer.h"
+#include "detection_inference/trt_detection_inferencer.h"
 #include "data_handler.h"
 #include <memory>
 

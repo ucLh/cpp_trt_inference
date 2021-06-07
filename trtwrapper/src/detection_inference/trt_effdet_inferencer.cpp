@@ -1,4 +1,4 @@
-#include "trt_effdet_inferencer.h"
+#include "detection_inference/trt_effdet_inferencer.h"
 
 cv::Rect2f TRTEffdetInferencer::processBox(float xmin, float ymin,
                                               float xmax, float ymax,
