@@ -4,9 +4,14 @@
 #include "interfaces.h"
 #include <memory>
 
+enum DetectionInferencerType {
+  YOLO,
+  EFFDET
+};
+
 class DetectionWrapper {
 public:
-  DetectionWrapper();
+  explicit DetectionWrapper(DetectionInferencerType type);
 
   ~DetectionWrapper() = default;
 

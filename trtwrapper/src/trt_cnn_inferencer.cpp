@@ -382,7 +382,8 @@ bool TRTCNNInferencer::processInput(const samplesCommon::BufferManager &buffers,
                                      const int position[]) -> void {
       for (short c = 0; c < inputC; ++c) {
         float val(pixel[c]);
-        if (normalize == NormalizeType::SEGMENTATION) {
+        if ((normalize == NormalizeType::SEGMENTATION) ||
+            (normalize == NormalizeType::DETECTION_EFFDET)) {
           val /= 255.0;
           val -= mean[2 - c];
           val /= m_deviation[2 - c];

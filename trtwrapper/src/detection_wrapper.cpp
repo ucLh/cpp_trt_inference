@@ -1,8 +1,14 @@
 #include "detection_wrapper.h"
-#include "trt_detection_inferencer.h"
+#include "trt_effdet_inferencer.h"
+#include "trt_yolo_inferencer.h"
 
-DetectionWrapper::DetectionWrapper() {
-  m_inference_handler = std::make_unique<TRTDetectionInferencer>();
+DetectionWrapper::DetectionWrapper(DetectionInferencerType type) {
+  if (type == DetectionInferencerType::YOLO) {
+    m_inference_handler = std::make_unique<TRTYoloInferencer>();
+  }
+  else if (type == DetectionInferencerType::EFFDET) {
+    m_inference_handler = std::make_unique<TRTEffdetInferencer>();
+  }
 }
 
 bool DetectionWrapper::prepareForInference(

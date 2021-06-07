@@ -15,7 +15,10 @@ add_library(TRT_WRAPPER
             src/logger.cpp
             src/segmentation_wrapper.cpp
             src/data_handler.cpp
-            src/detection_wrapper.cpp)
+            src/detection_wrapper.cpp
+            src/trt_yolo_inferencer.cpp
+            src/trt_effdet_inferencer.cpp
+            )
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 message("TRT libs:" ${TensorRT_LIBRARIES})

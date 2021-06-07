@@ -10,19 +10,19 @@ int main() {
   /// Legacy TensortRT. Just for checking that we didn't break anything
   {
     cv::Mat img = cv::imread(
-        "/home/luch/Programming/C++/cpp_trt_inference/test_data/images/frame_00049.png");
+        "/home/luch/Programming/C++/cpp_trt_inference/test_data/images/vid_4_1000.jpg");
 
-    DetectionWrapper det_wrapper;
+    DetectionWrapper det_wrapper(DetectionInferencerType::EFFDET);
     det_wrapper.prepareForInference(
-        608, 608,
+        512, 512,
         "/home/luch/Programming/C++/cpp_trt_inference/"
-        "test_data/yolov4_static_nms_gray.bin",
+        "test_data/efficientdet-d0_nms.bin",
         "/home/luch/Programming/C++/cpp_trt_inference/"
         "labels_for_remap.csv",
-        "input",
+        "data",
         {"nms_num_detections", "nms_boxes", "nms_scores", "nms_classes"},
-        false,
-        {0.2, 0.1, 0.1, 0.2, 0.1});
+        true,
+        {0.5, 0.5, 0.5, 0.5, 0.5});
 
     std::cerr << "Status of load: " << det_wrapper.getLastError() << std::endl;
 

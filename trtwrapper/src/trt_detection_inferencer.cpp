@@ -4,7 +4,6 @@
 
 TRTDetectionInferencer::TRTDetectionInferencer() {
   m_data_handler = std::make_unique<DataHandling>();
-  m_norm_type = NormalizeType::DETECTION_YOLOV4;
   m_bgr2rgb = true;
 }
 
@@ -48,6 +47,12 @@ string TRTDetectionInferencer::inference(const std::vector<cv::Mat> &imgs) {
     m_last_error = "You need to call prepareForInference first!";
     return m_last_error;
   }
+  // Save original width and height for bbox postprocessing
+  for (const auto& img : imgs) {
+    m_current_original_cols.emplace_back(img.cols);
+    m_current_original_rows.emplace_back(img.rows);
+  }
+
   std::string status = TRTCNNInferencer::inference(imgs);
 
   bool ok = processOutput(*m_buffers);
@@ -100,10 +105,14 @@ std::vector<cv::Mat> TRTDetectionInferencer::getFramesWithBoundingBoxes(
         continue;
       }
 
-      const int x = m_boxes[i][j].tl().x * (float)frame.cols;
-      const int y = m_boxes[i][j].tl().y * (float)frame.rows;
-      const int x1 = m_boxes[i][j].br().x * (float)frame.cols;
-      const int y1 = m_boxes[i][j].br().y * (float)frame.rows;
+      const int x = m_boxes[i][j].tl().x;
+      const int y = m_boxes[i][j].tl().y;
+      const int x1 = m_boxes[i][j].br().x;
+      const int y1 = m_boxes[i][j].br().y;
+//      const int x = m_boxes[i][j].tl().x * (float)frame.cols;
+//      const int y = m_boxes[i][j].tl().y * (float)frame.rows;
+//      const int x1 = m_boxes[i][j].br().x * (float)frame.cols;
+//      const int y1 = m_boxes[i][j].br().y * (float)frame.rows;
       cv::Scalar color = cv::Scalar(250, 250, 250);
 
       if (m_label_colors.size() > m_classes[i][j]) {
@@ -175,7 +184,7 @@ bool TRTDetectionInferencer::processOutput(
 
       if (final_cl_index != -1) {
         m_boxes[example_num].emplace_back(
-            cv::Rect2f(xmin, ymin, xmax - xmin, ymax - ymin));
+            processBox(xmin, ymin, xmax, ymax, example_num));
         m_scores[example_num].emplace_back(score);
         m_classes[example_num].emplace_back(final_cl_index);
       }

@@ -49,6 +49,8 @@ protected:
   static int remapClassIndex(int cl_index);
   static bool filterScore(int cl_index, float score,
                           const vector<float> &tresholds);
+  virtual cv::Rect2f processBox(float xmin, float ymin, float xmax, float ymax,
+                          int index) = 0;
   template <class T>
   bool checkBufferExtraction(T const &buffer, int output_node_name_index) {
     if (!buffer) {
@@ -67,6 +69,8 @@ protected:
   std::unique_ptr<IDataBase> m_data_handler;
   int m_rows;
   int m_cols;
+  std::vector<float> m_current_original_rows; // Len is equal to batch size
+  std::vector<float> m_current_original_cols; // Len is equal to batch size
   std::vector<std::string> m_detection_labels;
 
   //  size_t m_layout_size = 7;
