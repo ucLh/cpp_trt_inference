@@ -49,6 +49,8 @@ string TRTDetectionInferencer::inference(const std::vector<cv::Mat> &imgs) {
   }
   // Save original width and height for bbox postprocessing
   for (const auto& img : imgs) {
+    m_current_original_cols.clear();
+    m_current_original_rows.clear();
     m_current_original_cols.emplace_back(img.cols);
     m_current_original_rows.emplace_back(img.rows);
   }
