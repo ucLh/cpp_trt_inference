@@ -46,7 +46,7 @@ protected:
   int postprocessOutput(int cl_index, float score,
                         const std::vector<float> &tresholds = {0.2, 0.1, 0.1,
                                                                0.2, 0.3});
-  static int remapClassIndex(int cl_index);
+  virtual int remapClassIndex(int cl_index) = 0;
   static bool filterScore(int cl_index, float score,
                           const vector<float> &tresholds);
   virtual cv::Rect2f processBox(float xmin, float ymin, float xmax, float ymax,

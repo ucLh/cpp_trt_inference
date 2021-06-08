@@ -196,24 +196,6 @@ bool TRTDetectionInferencer::processOutput(
   return true;
 }
 
-int TRTDetectionInferencer::remapClassIndex(int cl_index) {
-  int final_cl_index = cl_index;
-  if ((1 <= cl_index) && (cl_index < 9)) {
-    // Vehicles
-    final_cl_index = 1;
-  } else if ((9 <= cl_index) && (cl_index < 14)) {
-    // Pillar
-    final_cl_index = 3;
-  } else if ((14 <= cl_index) && (cl_index < 24)) {
-    // Animals
-    final_cl_index = 2;
-  } else if (cl_index != 0) {
-    // Other, not person
-    final_cl_index = 4;
-  }
-  return final_cl_index;
-}
-
 bool TRTDetectionInferencer::filterScore(int cl_index, float score,
                                          const std::vector<float> &thresholds) {
   return score > thresholds[cl_index];
