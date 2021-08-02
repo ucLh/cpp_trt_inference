@@ -138,7 +138,7 @@ public:
     }
 
     LogStreamConsumer(LogStreamConsumer&& other)
-        : LogStreamConsumerBase(severityOstream(other.mSeverity), severityPrefix(other.mSeverity), other.mShouldLog)
+ noexcept         : LogStreamConsumerBase(severityOstream(other.mSeverity), severityPrefix(other.mSeverity), other.mShouldLog)
         , std::ostream(&mBuffer) // links the stream buffer with the stream
         , mShouldLog(other.mShouldLog)
         , mSeverity(other.mSeverity)
@@ -236,7 +236,7 @@ public:
     //! Note samples should not be calling this function directly; it will eventually go away once we eliminate the
     //! inheritance from nvinfer1::ILogger
     //!
-    void log(Severity severity, const char* msg) override
+    void log(Severity severity, const char* msg) noexcept override
     {
         LogStreamConsumer(mReportableSeverity, severity) << "[TRT] " << std::string(msg) << std::endl;
     }
