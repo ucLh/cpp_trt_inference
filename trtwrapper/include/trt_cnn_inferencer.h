@@ -23,7 +23,7 @@
 #include <chrono>
 
 #include <cuda.h>
-#include <cuda_profiler_api.h>
+//#include <cuda_profiler_api.h>
 #include <cuda_runtime_api.h>
 
 #define TRT_DEBUG
