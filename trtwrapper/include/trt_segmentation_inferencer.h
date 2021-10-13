@@ -45,7 +45,7 @@ protected:
 
   // NOTE: buffers.size give bytes, not length, be careful
   template <class T> size_t getHostDataBufferSize() {
-    auto output_node_name = getOutputNodeName()[0];
+    auto output_node_name = m_output_node_names[0];
     return (m_buffers->size(output_node_name) / sizeof(T)) / m_batch_size;
   }
   bool processOutput(const samplesCommon::BufferManager &buffers) override;

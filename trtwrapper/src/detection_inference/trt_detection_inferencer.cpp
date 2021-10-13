@@ -21,8 +21,8 @@ bool TRTDetectionInferencer::prepareForInference(
 }
 
 bool TRTDetectionInferencer::processConfig() {
-  setInputNodeName(m_data_handler->getConfigInputNode());
-  setOutputNodeNames({m_data_handler->getConfigOutputNodes()});
+  m_input_node_name = m_data_handler->getConfigInputNode();
+  m_output_node_names = {m_data_handler->getConfigOutputNodes()};
 
   m_rows = m_data_handler->getConfigInputSize().height;
   m_cols = m_data_handler->getConfigInputSize().width;
@@ -40,6 +40,7 @@ bool TRTDetectionInferencer::processConfig() {
   }
 
   TRTCNNInferencer::loadFromCudaEngine(m_data_handler->getConfigEnginePath());
+  return true;
 }
 
 string TRTDetectionInferencer::inference(const std::vector<cv::Mat> &imgs) {

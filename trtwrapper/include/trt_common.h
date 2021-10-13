@@ -340,11 +340,6 @@ public:
     {
         mData = new ElemType[size];
     };
-    void destroy() noexcept override
-    {
-        delete[](ElemType*) mData;
-        delete this;
-    }
     ElemType* raw() noexcept
     {
         return static_cast<ElemType*>(data());
@@ -379,7 +374,7 @@ struct InferDeleter
     {
         if (obj)
         {
-            obj->destroy();
+          delete obj;
         }
     }
 };

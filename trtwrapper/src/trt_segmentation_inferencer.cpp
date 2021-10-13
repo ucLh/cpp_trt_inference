@@ -51,8 +51,8 @@ bool TRTSegmentationInferencer::prepareForInference(
 }
 
 bool TRTSegmentationInferencer::processConfig() {
-  setInputNodeName(m_data_handler->getConfigInputNode());
-  setOutputNodeNames(m_data_handler->getConfigOutputNodes());
+  m_input_node_name = m_data_handler->getConfigInputNode();
+  m_output_node_names = m_data_handler->getConfigOutputNodes();
 
   m_rows = m_data_handler->getConfigInputSize().height;
   m_cols = m_data_handler->getConfigInputSize().width;
@@ -95,19 +95,19 @@ string TRTSegmentationInferencer::makeColorMask(float alpha,
 }
 
 void *TRTSegmentationInferencer::getHostDataBuffer() {
-  auto output_node_name = getOutputNodeName()[0];
+  auto output_node_name = m_output_node_names[0];
   return m_buffers->getHostBuffer(output_node_name);
 }
 
 std::size_t TRTSegmentationInferencer::getHostDataBufferBytesNum() {
-  auto output_node_name = getOutputNodeName()[0];
+  auto output_node_name = m_output_node_names[0];
   return m_buffers->size(output_node_name);
 }
 
 bool TRTSegmentationInferencer::processOutputColored(
     const samplesCommon::BufferManager &buffers, float alpha,
     const cv::Mat &original_image) {
-  auto output_node_name = getOutputNodeName()[0];
+  auto output_node_name = m_output_node_names[0];
   auto *hostDataBuffer =
       static_cast<float *>(buffers.getHostBuffer(output_node_name));
   const size_t num_of_elements = getHostDataBufferSize<float>();
@@ -197,7 +197,7 @@ bool TRTSegmentationInferencer::processOutputColored(
 
 bool TRTSegmentationInferencer::processOutput(
     const samplesCommon::BufferManager &buffers) {
-  auto output_node_name = getOutputNodeName()[0];
+  auto output_node_name = m_output_node_names[0];
   auto *hostDataBuffer =
       static_cast<float *>(buffers.getHostBuffer(output_node_name));
   const size_t num_of_elements = getHostDataBufferSize<float>();
@@ -263,7 +263,7 @@ bool TRTSegmentationInferencer::processOutput(
 
 bool TRTSegmentationInferencer::processOutputArgmaxed(
     const samplesCommon::BufferManager &buffers, int pixel_sky_border) {
-  auto output_node_name = getOutputNodeName()[0];
+  auto output_node_name = m_output_node_names[0];
   auto *hostDataBuffer =
       static_cast<int *>(buffers.getHostBuffer(output_node_name));
   const size_t num_of_elements = getHostDataBufferSize<int>();
