@@ -1,7 +1,11 @@
 #ifndef TRT_DETECTION_INFERENCER_H
 #define TRT_DETECTION_INFERENCER_H
 
-#include <opencv2/opencv.hpp>
+#if CV_VERSION_MAJOR >= 4
+  #include <opencv4/opencv2/opencv.hpp>
+#else
+  #include <opencv2/opencv.hpp>
+#endif
 #include <string>
 #include <vector>
 
