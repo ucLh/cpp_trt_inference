@@ -8,20 +8,20 @@
 using namespace std;
 
 int main() {
-  cv::Mat img = cv::imread("left_1_000000222.jpg");
+  cv::Mat img = cv::imread("/home/luch/Programming/C++/cpp_trt_inference/test_data/images/CDY_2016.jpg");
 
   // Create wrapper.
   SegmentationWrapper seg_wrapper;
 
   // Prepare wrapper for inference. You have to either give a path to the config
   // or manually initialize all the fields.
-  // seg_wrapper.prepareForInference("config.json");
-  seg_wrapper.prepareForInference(
-      640, 1280,
-      "/home/luch/Programming/Python/TMK/ckpt/autovis/"
-      "effnetb0_unet_gray_2grass_iou55_640x1280_argmax.bin",
-      "/home/luch/Programming/C++/cpp_trt_inference/classes.csv", "input_0",
-      "output_0");
+   seg_wrapper.prepareForInference("config.json");
+//  seg_wrapper.prepareForInference(
+//      640, 1280,
+//      "/home/luch/Programming/Python/TMK/ckpt/autovis/"
+//      "effnetb0_unet_gray_2grass_iou55_640x1280_argmax.bin",
+//      "/home/luch/Programming/C++/cpp_trt_inference/classes.csv", "input_0",
+//      "output_0");
 
   // Check if network loaded.
   std::cerr << "Status of load: " << seg_wrapper.getLastError() << std::endl;
@@ -48,8 +48,8 @@ int main() {
   cout << '\n';
 
   // Get index or color mask via corresponding method
-  cv::imwrite("1_trt_index.png", seg_wrapper.getIndexMask(200));
-  cv::imwrite("1_trt_color.png", seg_wrapper.getColorMask(0.4, img, 200));
+  cv::imwrite("1_trt_index.png", seg_wrapper.getIndexMask());
+  cv::imwrite("1_trt_color.png", seg_wrapper.getColorMask(0.4, img));
   cv::waitKey(0);
 
   // Time measurement. Inference one picture over and over again.
@@ -70,7 +70,7 @@ int main() {
   auto t2 = std::chrono::high_resolution_clock::now();
   auto duration =
       std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
-  std::cout << "Inference TensorRT took: " << (duration / 100)
+  std::cout << "Inference TensorRT took: " << (duration / 1000)
             << " microseconds" << std::endl;
 
   return 0;

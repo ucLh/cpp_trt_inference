@@ -4,17 +4,21 @@ project(TRT_WRAPPER)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules")
 
-find_package(OpenCV 4 REQUIRED)
+find_package(OpenCV REQUIRED)
 find_package(CUDA REQUIRED)
 
 add_library(TRT_WRAPPER
             src/trt_segmentation_inferencer.cpp
             src/trt_classification_inferencer.cpp
             src/trt_cnn_inferencer.cpp
-            src/trt_detection_inferencer.cpp
             src/logger.cpp
             src/segmentation_wrapper.cpp
-            src/data_handler.cpp)
+            src/detection_wrapper.cpp
+            src/data_handler.cpp
+            src/detection_inference/trt_detection_inferencer.cpp
+            src/detection_inference/trt_yolo_inferencer.cpp
+            src/detection_inference/trt_effdet_inferencer.cpp
+            )
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 message("TRT libs:" ${TensorRT_LIBRARIES})

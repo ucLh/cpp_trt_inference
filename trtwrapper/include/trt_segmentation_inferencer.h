@@ -2,7 +2,11 @@
 #define TRTWRAPPER_PROJ_TRT_SEGMENTATION_H
 
 #include <memory>
-#include <opencv4/opencv2/opencv.hpp>
+#if CV_VERSION_MAJOR == 4
+  #include <opencv4/opencv2/opencv.hpp>
+#else
+  #include <opencv2/opencv.hpp>
+#endif
 #include <string>
 #include <vector>
 
@@ -34,14 +38,14 @@ public:
   std::size_t getHostDataBufferBytesNum() override;
   void *getHostDataBuffer() override;
 
-  std::string getLastError() override;
+  std::string getLastError() const override;
 
 protected:
   bool processConfig();
 
   // NOTE: buffers.size give bytes, not length, be careful
   template <class T> size_t getHostDataBufferSize() {
-    auto output_node_name = getOutputNodeName()[0];
+    auto output_node_name = m_output_node_names[0];
     return (m_buffers->size(output_node_name) / sizeof(T)) / m_batch_size;
   }
   bool processOutput(const samplesCommon::BufferManager &buffers) override;

@@ -11,18 +11,16 @@ bool SegmentationWrapper::prepareForInference(const std::string &config_path) {
   return m_inference_handler->prepareForInference(config_path);
 }
 
-bool SegmentationWrapper::prepareForInference(int height, int width,
-                                              std::string engine_path,
-                                              std::string colors_path,
-                                              std::string input_node,
-                                              std::string output_node) {
+bool SegmentationWrapper::prepareForInference(
+    int height, int width, std::string engine_path, std::string colors_path,
+    std::string input_node, std::vector<std::string> output_node) {
   IDataBase::ConfigData config;
   config.input_size.height = height;
   config.input_size.width = width;
   config.engine_path = std::move(engine_path);
   config.colors_path = std::move(colors_path);
   config.input_node = std::move(input_node);
-  config.output_node = std::move(output_node);
+  config.output_nodes = std::move(output_node);
   return m_inference_handler->prepareForInference(config);
 }
 
@@ -32,7 +30,7 @@ bool SegmentationWrapper::inference(cv::Mat &img) {
   return status == "OK";
 }
 
-std::string SegmentationWrapper::getLastError() {
+std::string SegmentationWrapper::getLastError() const {
   return m_inference_handler->getLastError();
 }
 

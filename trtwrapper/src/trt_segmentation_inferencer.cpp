@@ -51,8 +51,8 @@ bool TRTSegmentationInferencer::prepareForInference(
 }
 
 bool TRTSegmentationInferencer::processConfig() {
-  setInputNodeName(m_data_handler->getConfigInputNode());
-  setOutputNodeName({m_data_handler->getConfigOutputNode()});
+  m_input_node_name = m_data_handler->getConfigInputNode();
+  m_output_node_names = m_data_handler->getConfigOutputNodes();
 
   m_rows = m_data_handler->getConfigInputSize().height;
   m_cols = m_data_handler->getConfigInputSize().width;
@@ -63,6 +63,7 @@ bool TRTSegmentationInferencer::processConfig() {
   m_num_classes_actual = m_colors.size();
 
   TRTCNNInferencer::loadFromCudaEngine(m_data_handler->getConfigEnginePath());
+  return true;
 }
 
 string TRTSegmentationInferencer::makeIndexMask(int pixel_sky_border) {
@@ -94,19 +95,19 @@ string TRTSegmentationInferencer::makeColorMask(float alpha,
 }
 
 void *TRTSegmentationInferencer::getHostDataBuffer() {
-  auto output_node_name = getOutputNodeName()[0];
+  auto output_node_name = m_output_node_names[0];
   return m_buffers->getHostBuffer(output_node_name);
 }
 
 std::size_t TRTSegmentationInferencer::getHostDataBufferBytesNum() {
-  auto output_node_name = getOutputNodeName()[0];
+  auto output_node_name = m_output_node_names[0];
   return m_buffers->size(output_node_name);
 }
 
 bool TRTSegmentationInferencer::processOutputColored(
     const samplesCommon::BufferManager &buffers, float alpha,
     const cv::Mat &original_image) {
-  auto output_node_name = getOutputNodeName()[0];
+  auto output_node_name = m_output_node_names[0];
   auto *hostDataBuffer =
       static_cast<float *>(buffers.getHostBuffer(output_node_name));
   const size_t num_of_elements = getHostDataBufferSize<float>();
@@ -151,52 +152,52 @@ bool TRTSegmentationInferencer::processOutputColored(
   return true;
 }
 
-bool TRTSegmentationInferencer::processOutputColoredFast(
-    const samplesCommon::BufferManager &buffers, float alpha,
-    const cv::Mat &original_image) {
-  auto output_node_name = getOutputNodeName()[0];
-  auto *hostDataBuffer =
-      static_cast<half_float::half *>(buffers.getHostBuffer(output_node_name));
-  const size_t num_of_elements = getHostDataBufferSize<half_float::half>();
-  assert(num_of_elements % (m_rows * m_cols) == 0);
-
-  if (!hostDataBuffer) {
-    m_last_error = "Can not get output tensor by name " + output_node_name;
-    return false;
-  }
-  //  int img_size = rows * cols;
-  //  size_t num_channels = num_of_elements / (img_size);
-
-  // Needs to be a multiple of 8. If the actual number
-  // is lower, the remaining channels will be filled with zeros
-  // See
-  // https://docs.nvidia.com/deeplearning/tensorrt/developer-guide/index.html#data-format-desc__fig4
-  const int num_classes = 16;
-
-  cv::Mat net_output(m_rows, m_cols, CV_16FC(num_classes), hostDataBuffer);
-  uint8_t *mask_ptr = m_colored_mask.data;
-  cv::Mat img;
-  cv::resize(original_image, img, cv::Size(m_cols, m_rows), 0, 0);
-  uint8_t *img_ptr = img.data;
-  typedef cv::Vec<cv::float16_t, num_classes> Vecnb;
-  net_output.forEach<Vecnb>([&](Vecnb &pixel, const int position[]) -> void {
-    std::vector<float> p{pixel.val, pixel.val + m_num_classes_actual};
-    int maxElementIndex = std::max_element(p.begin(), p.end()) - p.begin();
-    int hw_pos = position[0] * m_cols + position[1];
-    mask_ptr[3 * hw_pos + 0] = (1 - alpha) * m_colors[maxElementIndex][2] +
-                               alpha * img_ptr[3 * hw_pos + 0];
-    mask_ptr[3 * hw_pos + 1] = (1 - alpha) * m_colors[maxElementIndex][1] +
-                               alpha * img_ptr[3 * hw_pos + 1];
-    mask_ptr[3 * hw_pos + 2] = (1 - alpha) * m_colors[maxElementIndex][0] +
-                               alpha * img_ptr[3 * hw_pos + 2];
-  });
-
-  return true;
-}
+//bool TRTSegmentationInferencer::processOutputColoredFast(
+//    const samplesCommon::BufferManager &buffers, float alpha,
+//    const cv::Mat &original_image) {
+//  auto output_node_name = getOutputNodeName()[0];
+//  auto *hostDataBuffer =
+//      static_cast<half_float::half *>(buffers.getHostBuffer(output_node_name));
+//  const size_t num_of_elements = getHostDataBufferSize<half_float::half>();
+//  assert(num_of_elements % (m_rows * m_cols) == 0);
+//
+//  if (!hostDataBuffer) {
+//    m_last_error = "Can not get output tensor by name " + output_node_name;
+//    return false;
+//  }
+//  //  int img_size = rows * cols;
+//  //  size_t num_channels = num_of_elements / (img_size);
+//
+//  // Needs to be a multiple of 8. If the actual number
+//  // is lower, the remaining channels will be filled with zeros
+//  // See
+//  // https://docs.nvidia.com/deeplearning/tensorrt/developer-guide/index.html#data-format-desc__fig4
+//  const int num_classes = 16;
+//
+//  cv::Mat net_output(m_rows, m_cols, CV_16FC(num_classes), hostDataBuffer);
+//  uint8_t *mask_ptr = m_colored_mask.data;
+//  cv::Mat img;
+//  cv::resize(original_image, img, cv::Size(m_cols, m_rows), 0, 0);
+//  uint8_t *img_ptr = img.data;
+//  typedef cv::Vec<cv::float16_t, num_classes> Vecnb;
+//  net_output.forEach<Vecnb>([&](Vecnb &pixel, const int position[]) -> void {
+//    std::vector<float> p{pixel.val, pixel.val + m_num_classes_actual};
+//    int maxElementIndex = std::max_element(p.begin(), p.end()) - p.begin();
+//    int hw_pos = position[0] * m_cols + position[1];
+//    mask_ptr[3 * hw_pos + 0] = (1 - alpha) * m_colors[maxElementIndex][2] +
+//                               alpha * img_ptr[3 * hw_pos + 0];
+//    mask_ptr[3 * hw_pos + 1] = (1 - alpha) * m_colors[maxElementIndex][1] +
+//                               alpha * img_ptr[3 * hw_pos + 1];
+//    mask_ptr[3 * hw_pos + 2] = (1 - alpha) * m_colors[maxElementIndex][0] +
+//                               alpha * img_ptr[3 * hw_pos + 2];
+//  });
+//
+//  return true;
+//}
 
 bool TRTSegmentationInferencer::processOutput(
     const samplesCommon::BufferManager &buffers) {
-  auto output_node_name = getOutputNodeName()[0];
+  auto output_node_name = m_output_node_names[0];
   auto *hostDataBuffer =
       static_cast<float *>(buffers.getHostBuffer(output_node_name));
   const size_t num_of_elements = getHostDataBufferSize<float>();
@@ -229,40 +230,40 @@ bool TRTSegmentationInferencer::processOutput(
   return true;
 }
 
-bool TRTSegmentationInferencer::processOutputFast(
-    const samplesCommon::BufferManager &buffers) {
-  auto output_node_name = getOutputNodeName()[0];
-  auto *hostDataBuffer =
-      static_cast<half_float::half *>(buffers.getHostBuffer(output_node_name));
-  const size_t num_of_elements = getHostDataBufferSize<half_float::half>();
-  assert(num_of_elements % (m_rows * m_cols) == 0);
-
-  if (!hostDataBuffer) {
-    m_last_error = "Can not get output tensor by name " + output_node_name;
-    return false;
-  }
-  //  int img_size = rows * cols;
-  //  size_t num_channels = num_of_elements / (img_size);
-
-  // Needs to be a multiple of 8. If the actual number
-  // is lower, the remaining channels will be filled with zeros
-  const int num_classes = 16;
-
-  cv::Mat net_output(m_rows, m_cols, CV_16FC(num_classes), hostDataBuffer);
-  uint8_t *indexes_ptr = m_index_mask.data;
-  typedef cv::Vec<cv::float16_t, num_classes> Vecnb;
-  net_output.forEach<Vecnb>([&](Vecnb &pixel, const int position[]) -> void {
-    std::vector<float> p{pixel.val, pixel.val + m_num_classes_actual};
-    int maxElementIndex = std::max_element(p.begin(), p.end()) - p.begin();
-    indexes_ptr[0, position[0] * m_cols + position[1]] = maxElementIndex;
-  });
-
-  return true;
-}
+//bool TRTSegmentationInferencer::processOutputFast(
+//    const samplesCommon::BufferManager &buffers) {
+//  auto output_node_name = getOutputNodeName()[0];
+//  auto *hostDataBuffer =
+//      static_cast<half_float::half *>(buffers.getHostBuffer(output_node_name));
+//  const size_t num_of_elements = getHostDataBufferSize<half_float::half>();
+//  assert(num_of_elements % (m_rows * m_cols) == 0);
+//
+//  if (!hostDataBuffer) {
+//    m_last_error = "Can not get output tensor by name " + output_node_name;
+//    return false;
+//  }
+//  //  int img_size = rows * cols;
+//  //  size_t num_channels = num_of_elements / (img_size);
+//
+//  // Needs to be a multiple of 8. If the actual number
+//  // is lower, the remaining channels will be filled with zeros
+//  const int num_classes = 16;
+//
+//  cv::Mat net_output(m_rows, m_cols, CV_16FC(num_classes), hostDataBuffer);
+//  uint8_t *indexes_ptr = m_index_mask.data;
+//  typedef cv::Vec<cv::float16_t, num_classes> Vecnb;
+//  net_output.forEach<Vecnb>([&](Vecnb &pixel, const int position[]) -> void {
+//    std::vector<float> p{pixel.val, pixel.val + m_num_classes_actual};
+//    int maxElementIndex = std::max_element(p.begin(), p.end()) - p.begin();
+//    indexes_ptr[0, position[0] * m_cols + position[1]] = maxElementIndex;
+//  });
+//
+//  return true;
+//}
 
 bool TRTSegmentationInferencer::processOutputArgmaxed(
     const samplesCommon::BufferManager &buffers, int pixel_sky_border) {
-  auto output_node_name = getOutputNodeName()[0];
+  auto output_node_name = m_output_node_names[0];
   auto *hostDataBuffer =
       static_cast<int *>(buffers.getHostBuffer(output_node_name));
   const size_t num_of_elements = getHostDataBufferSize<int>();
@@ -330,6 +331,6 @@ cv::Mat TRTSegmentationInferencer::getIndexMask() {
   }
 }
 
-std::string TRTSegmentationInferencer::getLastError() {
+std::string TRTSegmentationInferencer::getLastError() const {
   return TRTCNNInferencer::getLastError();
 }

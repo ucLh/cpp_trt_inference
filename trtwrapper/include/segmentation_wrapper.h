@@ -14,11 +14,11 @@ public:
 
   bool prepareForInference(int height, int width, std::string engine_path,
                            std::string colors_path, std::string input_node,
-                           std::string output_node);
+                           std::vector<std::string> output_node);
 
   bool inference(cv::Mat &img); // Only batch size 1 for now
 
-  std::string getLastError();
+  std::string getLastError() const;
 
   cv::Mat getIndexMask(int pixel_sky_border = 0);
 

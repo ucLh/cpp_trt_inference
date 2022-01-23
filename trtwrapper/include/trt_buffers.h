@@ -18,7 +18,6 @@
 
 #include "NvInfer.h"
 #include "trt_common.h"
-#include "trt_half.h"
 #include <cassert>
 #include <cuda_runtime_api.h>
 #include <iostream>
@@ -348,7 +347,7 @@ public:
         {
         case nvinfer1::DataType::kINT32: print<int32_t>(os, buf, bufSize, rowCount); break;
         case nvinfer1::DataType::kFLOAT: print<float>(os, buf, bufSize, rowCount); break;
-        case nvinfer1::DataType::kHALF: print<half_float::half>(os, buf, bufSize, rowCount); break;
+//        case nvinfer1::DataType::kHALF: print<half_float::half>(os, buf, bufSize, rowCount); break;
         case nvinfer1::DataType::kINT8: assert(0 && "Int8 network-level input and output is not supported"); break;
         //case nvinfer1::DataType::kBOOL: assert(0 && "Bool network-level input and output are not supported"); break;
         }
