@@ -8,7 +8,7 @@
 using namespace std;
 
 int main() {
-  cv::Mat img = cv::imread("/home/docker_trt/datasets/test_data/images/CDY_2015.jpg");
+  cv::Mat img = cv::imread("/home/luch/Programming/C++/cpp_trt_inference/test_data/images/CDY_2016.jpg");
 
   // Create wrapper.
   SegmentationWrapper seg_wrapper;

@@ -23,7 +23,7 @@ TEST(TestDataHandling, config_sets_up) {
       cv::Size(60, 128),
       "int_0",
       {"outt_0"},
-      "/home/luch/effnetb0_unet_gray_2grass_iou55_640x120_argmax.bin",
+      "/home/luch/effnetb0_unet.bin",
       "/home/luch/Programming/C++/cpp_trt_inference/classes.csv",
       ""};
 

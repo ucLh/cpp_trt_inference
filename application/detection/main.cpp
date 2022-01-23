@@ -7,7 +7,6 @@
 using namespace std;
 
 int main() {
-  /// Legacy TensortRT. Just for checking that we didn't break anything
   {
     cv::Mat img = cv::imread(
         "/home/luch/Programming/C++/cpp_trt_inference/test_data/images/vid_4_1000.jpg");
@@ -16,13 +15,13 @@ int main() {
     det_wrapper.prepareForInference(
         512, 512,
         "/home/luch/Programming/C++/cpp_trt_inference/"
-        "test_data/efficientdet-d0_nms.bin",
+        "test_data/efficientdet-d0_test_nms.bin",
         "/home/luch/Programming/C++/cpp_trt_inference/"
         "labels_for_remap.csv",
         "data",
         {"nms_num_detections", "nms_boxes", "nms_scores", "nms_classes"},
         true,
-        {0.5, 0.5, 0.5, 0.5, 0.5});
+        {0.4, 0.3, 0.9, 0.9, 0.9});
 
     std::cerr << "Status of load: " << det_wrapper.getLastError() << std::endl;
 
