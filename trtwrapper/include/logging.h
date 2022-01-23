@@ -137,8 +137,8 @@ public:
     {
     }
 
-    LogStreamConsumer(LogStreamConsumer&& other)
- noexcept         : LogStreamConsumerBase(severityOstream(other.mSeverity), severityPrefix(other.mSeverity), other.mShouldLog)
+    LogStreamConsumer(LogStreamConsumer&& other) noexcept
+        : LogStreamConsumerBase(severityOstream(other.mSeverity), severityPrefix(other.mSeverity), other.mShouldLog)
         , std::ostream(&mBuffer) // links the stream buffer with the stream
         , mShouldLog(other.mShouldLog)
         , mSeverity(other.mSeverity)
